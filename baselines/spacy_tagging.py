@@ -111,6 +111,7 @@ def main():
     scores.append(score)
   print('avg F1 %g' % statistics.mean(scores))
 
+## Score : 0.604464
 
 if __name__ == '__main__':
   main()
