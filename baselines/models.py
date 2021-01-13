@@ -278,4 +278,5 @@ class RNNSL:
                          tokens, scores in list(zip(validation_data[0], predictions))]
             score = np.mean([evaluator(p, g[:self.maxlen]) for p, g in list(zip(decisions, validation_data[1]))])
             if score > opt_score:
+                print("Updating Threshold to: ",thr/100," Mean F1: ",score)
                 self.threshold = thr/100.
