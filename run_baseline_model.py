@@ -49,7 +49,7 @@ def main():
     print("Threshold: ",rnnsl.threshold)
 
     predictions = rnnsl.get_toxic_offsets(val_data[0])
-    print("F1_score: ",np.mean([f1(predictions[i], val_data[1][i][:128])
+    print("F1_score: ",np.mean([f1(predictions[i], val_data[1][i])
                    for i in range(len(val_data[1]))]))
 if __name__=='__main__':
     main()
