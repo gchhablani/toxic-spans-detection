@@ -40,10 +40,11 @@ def main():
         test_token_label, num_classes=3) for test_token_label in test_token_labels]
 
     rnnsl = RNNSL()
-    val_data = (test_tokens, test_token_labels)
-    rnnsl.fit(train_tokens,train_token_labels_oh,validation_data=val_data)
+    
+    rnnsl.fit(train_tokens,train_token_labels_oh,validation_data=(test_tokens,test_token_labels_oh))
     rnnsl.tune_threshold(val_data, f1)
     print(rnnsl.threshold)
+    val_data = (test_tokens, test_token_labels)
     predictions = rnnsl.get_toxic_offsets(val_data[0])
     print(np.mean([f1(predictions[i], val_data[1][i][:128])
                    for i in range(len(val_data[1]))]))
