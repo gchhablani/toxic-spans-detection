@@ -52,10 +52,14 @@ def main():
 
     rnnsl = RNNSL()
 
-    # run_df = rnnsl.fit(train_tokens,train_token_labels_oh,validation_data=(test_tokens,test_token_labels_oh))
-    # run_df.to_csv('RNNSL_Run.csv',index=False)
-    rnnsl.set_up_preprocessing(train_tokens)
-    rnnsl.model = rnnsl.build()
+    run_df = rnnsl.fit(
+        train_tokens,
+        train_token_labels_oh,
+        validation_data=(test_tokens, test_token_labels_oh),
+    )
+    run_df.to_csv("RNNSL_Run.csv", index=False)
+    # rnnsl.set_up_preprocessing(train_tokens)
+    # rnnsl.model = rnnsl.build()
 
     val_data = (test_tokens, test_token_labels)
     rnnsl.tune_threshold(val_data, f1_score)
