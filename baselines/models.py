@@ -3,6 +3,7 @@ random.seed(a=2021)
 import lime
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 np.random.seed(seed=2021)
 from lime import lime_text
 from lime.lime_text import LimeTextExplainer
@@ -273,7 +274,7 @@ class RNNSL:
         decisions = [[self.toxic_label if scores[i] > self.threshold else self.not_toxic_label for i in range(min(len(tokens), self.maxlen))] for tokens, scores in list(zip(validation_data[0], predictions))]
         opt_score = np.mean([evaluator(p, g[:self.maxlen]) for p, g in list(zip(decisions, validation_data[1]))])
 
-        for thr in range(0, 100, 1):
+        for thr in tqdm(range(0, 100, 1)):
             decisions = [[self.toxic_label if scores[i] > thr/100. else self.not_toxic_label for i in range(min(len(tokens), self.maxlen))] for
                          tokens, scores in list(zip(validation_data[0], predictions))]
             score = np.mean([evaluator(p, g[:self.maxlen]) for p, g in list(zip(decisions, validation_data[1]))])
