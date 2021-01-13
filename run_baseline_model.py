@@ -42,11 +42,14 @@ def main():
     rnnsl = RNNSL()
     
     rnnsl.fit(train_tokens,train_token_labels_oh,validation_data=(test_tokens,test_token_labels_oh))
+    
+    val_data = (test_tokens, test_token_labels)
     rnnsl.tune_threshold(val_data, f1)
     print(rnnsl.threshold)
-    val_data = (test_tokens, test_token_labels)
+
     predictions = rnnsl.get_toxic_offsets(val_data[0])
     print(np.mean([f1(predictions[i], val_data[1][i][:128])
                    for i in range(len(val_data[1]))]))
-    
+if __name__=='__main__':
+    main()
 
