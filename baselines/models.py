@@ -430,3 +430,4 @@ class RNNSL:
             if score > opt_score:
                 print("Updating Threshold to: ", thr / 100, " Mean F1: ", score)
                 self.threshold = thr / 100.0
+                opt_score = score
