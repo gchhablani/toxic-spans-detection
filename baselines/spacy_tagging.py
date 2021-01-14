@@ -18,9 +18,9 @@ import sys
 import sklearn
 import spacy
 
-sys.path.append("../evaluation")
-import semeval2021
-import fix_spans
+# sys.path.append("../evaluation")
+from evaluation import semeval2021
+from evaluation import fix_spans
 
 
 def spans_to_ents(doc, spans, label):
