@@ -1,0 +1,23 @@
+main: &main
+  name: qa_dataset
+  data_dir: ./data
+  max_length: 384
+  doc_stride: 128
+  preprocessor:
+    name: qa_preprocessor
+    tokenizer:
+      name: AutoTokenizer
+      init_params:
+        pretrained_model_name_or_path: "distilbert-base-uncased"
+
+train: &train
+  <<: *main
+  file_path: ./data/tsd_train.csv 
+  split: train
+
+val:
+  <<: *main
+  file_path: ./data/tsd_trial.csv 
+  split: val
+test:
+  <<: *main

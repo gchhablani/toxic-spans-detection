@@ -1,0 +1,38 @@
+trainer_name: qa_trainer.yaml
+version: 1.0
+main_config: &main
+    seed: !!int 42
+    device:
+        name: 'cuda'
+
+train: &train
+    # Change to different value if not using max_steps
+    <<: *main
+    # Can add the max_epochs vs max_steps functionality
+    tokenizer:
+    name: AutoTokenizer
+    init_params:
+      pretrained_model_name_or_path: "bert-large-uncased"
+    save_path: "qa_answering_saved_model"
+    trainer_args:
+      output_dir: "question_answering"
+      overwrite_output_dir: False
+      evaluation_strategy: "epoch"
+      prediction_loss_only: False
+      per_device_train_batch_size: 4
+      per_device_eval_batch_size: 4
+      gradient_accumulation_steps: 1
+      learning_rate: !!float 2e-5
+      weight_decay: !!float 0.01
+      adam_beta1: !!float 0.9         # don't modify
+      adam_beta2: !!float 0.999       # don't modify
+      adam_epsilon: !!float 1e-8      # don't modify
+      max_grad_norm: !!float 1.0
+      num_train_epochs: !!float 3.0
+      max_steps: !!int -1
+      lr_scheduler_type: "linear"
+      warmup_steps: !!int 0
+      logging_steps: !!int 200
+      save_steps: !!int 200
+      no_cuda: False
+      seed: !!int 42
