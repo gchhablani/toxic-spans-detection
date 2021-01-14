@@ -185,7 +185,7 @@ def dev():
         "F1_score Word Wise on Dev Tokens :",
         np.mean(
             [
-                f1_score(token_predictions[i], val_data[1][i][:128])
+                f1_score(token_predictions[i], val_data[1][i][:192])
                 for i in range(len(val_data[1]))
             ]
         ),
@@ -196,7 +196,7 @@ def dev():
     offset_predictions = []
     for example in range(len(dev_tokens)):
         offset_predictions.append([])
-        for token in range(len(dev_tokens[example][:128])):
+        for token in range(len(dev_tokens[example][:192])):
             if token_predictions[example][token] == rnnsl.toxic_label:
                 offset_predictions[-1] += list(
                     range(
@@ -307,7 +307,7 @@ def predict():
         "F1_score Word Wise on Dev Tokens :",
         np.mean(
             [
-                f1_score(token_predictions[i], val_data[1][i][:128])
+                f1_score(token_predictions[i], val_data[1][i][:192])
                 for i in range(len(val_data[1]))
             ]
         ),
@@ -318,7 +318,7 @@ def predict():
     offset_predictions = []
     for example in range(len(dev_tokens)):
         offset_predictions.append([])
-        for token in range(len(dev_tokens[example][:128])):
+        for token in range(len(dev_tokens[example][:192])):
             if token_predictions[example][token] == rnnsl.toxic_label:
                 offset_predictions[-1] += list(
                     range(
@@ -402,7 +402,7 @@ def predict():
     final_offset_predictions = []
     for example in range(len(test_tokens)):
         final_offset_predictions.append([])
-        for token in range(len(test_tokens[example][:128])):
+        for token in range(len(test_tokens[example][:192])):
             if final_token_predictions[example][token] == rnnsl_2.toxic_label:
                 final_offset_predictions[-1] += list(
                     range(

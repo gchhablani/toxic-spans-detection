@@ -215,7 +215,7 @@ class LimeUsd(InputErasure):
 class RNNSL:
     def __init__(
         self,
-        maxlen=128,
+        maxlen=192,
         batch_size=32,
         w_embed_size=200,
         padding="post",
