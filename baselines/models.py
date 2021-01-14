@@ -221,7 +221,7 @@ class RNNSL:
         padding="post",
         h_embed_size=200,
         dropout=0.1,
-        patience=1,
+        patience=3,
         plot=True,
         max_epochs=100,
     ):
