@@ -375,7 +375,7 @@ def predict():
     ]
 
     rnnsl_2 = RNNSL()
-    pred_df = rnnsl_2.fit(combo_tokens, combo_token_labels_oh)
+    pred_df = rnnsl_2.fit(combo_tokens, combo_token_labels_oh, do_val=False)
     pred_df.to_csv("RNNSL_Pred.csv", index=False)
     rnnsl_2.threshold = rnnsl.threshold  ##Replace with tuned threshold
     # rnnsl_2.set_up_preprocessing(combo_tokens)
