@@ -42,15 +42,19 @@ def spans_to_ents(doc, spans, label):
     return ents
 
 
-def read_datafile(filename):
+def read_datafile(filename, test=False):
     """Reads csv file with python span list and text."""
     data = []
     with open(filename) as csvfile:
         reader = csv.DictReader(csvfile)
         count = 0
         for row in reader:
-            fixed = fix_spans.fix_spans(ast.literal_eval(row["spans"]), row["text"])
-            data.append((fixed, row["text"]))
+            if test:
+                data.append(row["text"])
+
+            else:
+                fixed = fix_spans.fix_spans(ast.literal_eval(row["spans"]), row["text"])
+                data.append((fixed, row["text"]))
     return data
 
 
