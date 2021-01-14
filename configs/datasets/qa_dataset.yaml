@@ -12,12 +12,12 @@ main: &main
 
 train: &train
   <<: *main
-  file_path: ./data/tsd_train.csv 
+  file_path: ./data/tsd_train.csv
   split: train
 
 val:
   <<: *main
-  file_path: ./data/tsd_trial.csv 
+  file_path: ./data/tsd_trial.csv
   split: val
 test:
   <<: *main

@@ -74,9 +74,9 @@ if grid_search:
     train_configs = generate_grid_search_configs(train_config, train_config.grid_search)
     print(f"Total Configurations Generated: {len(train_configs)}")
 
-    logger = Logger(
-        **train_config.grid_search.hyperparams.train.log.logger_params.as_dict()
-    )
+    # logger = Logger(
+    #     **train_config.grid_search.hyperparams.train.log.logger_params.as_dict()
+    # )
 
     for train_config in train_configs:
         print(train_config)
@@ -91,7 +91,7 @@ if grid_search:
         )
 
         ## Train
-        trainer.train(model, train_data, val_data, logger)
+        trainer.train(model, train_data, val_data)
 
 else:
     ## Seed

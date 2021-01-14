@@ -37,7 +37,7 @@ def convert_params_to_dict(params):
             dic[k] = v
         except:
             print(
-                f"Undefined {v} for the given key: {k} in mapper        ,storing original value"
+                f"Undefined {v} for the given key: {k} in mapper,storing original value"
             )
             dic[k] = v
         return value
@@ -119,6 +119,7 @@ class Config:
             else:
                 return self._config[attr]
         else:
+            print(self.__str__())
             raise KeyError(f"Key:{attr} not defined.")
 
     def set_value(self, attr, value):
