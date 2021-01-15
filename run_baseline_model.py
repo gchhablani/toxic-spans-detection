@@ -4,9 +4,14 @@ from baselines.models import RNNSL
 from baselines.spacy_tagging import read_datafile
 
 from evaluation.semeval2021 import f1  ## WRONG F1, ONLY USED FOR OFFSETS
+import random
 from sklearn.metrics import f1_score
 from evaluation.fix_spans import _contiguous_ranges
 from keras.utils import to_categorical
+
+from tensorflow.random import set_seed
+
+SEED = 2021
 
 
 def check_for_mismatch(tokens, texts, offset_mapping):
@@ -430,4 +435,7 @@ def predict():
 
 
 if __name__ == "__main__":
+    random.seed(SEED)
+    np.random.seed(SEED)
+    set_seed(SEED)
     predict()
