@@ -133,6 +133,18 @@ def clean_text(text,contiguous_spans):
 | #Words(max)   |         192 |         182 |           192 |   182 |
 | #Words(min)   |           1 |           1 |             1 |     1 |
 
+
+|                            | Train | Trial | Modified Train | Clean Train | Clean Trial |
+| -------------------------- | ----- | ----- | -------------- | ----------- | ----------- |
+| Num Contiguous Spans(Mean) | 1.30  | 1.31  | 1.30           | 1.17        | 1.19        |
+| Num Contiguous Spans(Std)  | 0.83  | 0.74  | 0.83           | 0.88        | 0.79        |
+| Num Contiguous Spans(Max)  | 25    | 6     | 25             | 25          | 6           |
+| Num Contiguous Spans(Min)  | 0     | 0     | 0              | 0           | 0           |
+| Len Contiguous Spans(Mean) | 13.51 | 11.30 | 13.51          | 12.06       | 10.28       |
+| Len Contiguous Spans(Std)  | 38.57 | 20.76 | 38.58          | 34.51       | 16.36       |
+| Len Contiguous Spans(Max)  | 994   | 350   | 994            | 997         | 281         |
+| Len Contiguous Spans(Min)  | 1     | 1     | 1              | 1           | 1           |
+
 **Note**: There are five files in the data directory. They are described as follows:
 1. tsd_train.csv : Original Training File
 2. tsd_trial.csv : Original Trial File
