@@ -95,10 +95,15 @@ def clean_predicted_text(
         end = range_[-1]
 
         while start < end:
-            if text[start] in string.punctuation or text[end] in string.punctuation:
-                if text[start] in string.punctuation:
+            if (
+                text[start] in string.punctuation
+                or is_whitespace(text[start])
+                or text[end] in string.punctuation
+                or is_whitespace(text[end])
+            ):
+                if text[start] in string.punctuation or is_whitespace(text[start]):
                     start += 1
-                if text[end] in string.punctuation:
+                if text[end] in string.punctuation or is_whitespace(text[end]):
                     end -= 1
             else:
                 break

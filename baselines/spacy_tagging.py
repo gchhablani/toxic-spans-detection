@@ -1,12 +1,12 @@
 # Lint as: python3
 """Example tagging for Toxic Spans based on Spacy.
-
+ 
 Requires:
   pip install spacy sklearn
-
+ 
 Install models:
   python -m spacy download en_core_web_sm
-
+ 
 """
 
 import ast
@@ -18,7 +18,6 @@ import sys
 import sklearn
 import spacy
 
-# sys.path.append("../evaluation")
 from evaluation import semeval2021
 from evaluation import fix_spans
 
@@ -62,11 +61,15 @@ def main():
     """Train and eval a spacy named entity tagger for toxic spans."""
     # Read training data
     print("loading training data")
-    train = read_datafile("../data/tsd_train.csv")
+    train = read_datafile("../data/modified_train.csv")
 
     # Read trial data for test.
     print("loading test data")
-    test = read_datafile("../data/tsd_trial.csv")
+    dev = read_datafile("../data/tsd_trial.csv")
+
+    train = train + dev
+
+    test = read_datafile("../data/tsd_test.csv", test=True)
 
     # Convert training data to Spacy Entities
     nlp = spacy.load("en_core_web_sm")
@@ -106,14 +109,16 @@ def main():
     # Score on trial data.
     print("evaluation")
     scores = []
-    for spans, text in test:
+    for i, text in enumerate(test):
         pred_spans = []
         doc = toxic_tagging(text)
         for ent in doc.ents:
             pred_spans.extend(range(ent.start_char, ent.start_char + len(ent.text)))
-        score = semeval2021.f1(pred_spans, spans)
-        scores.append(score)
-    print("avg F1 %g" % statistics.mean(scores))
+        # score = semeval2021.f1(pred_spans, spans)
+        with open("spans-pred.txt", "w") as f:
+            f.write(f"{i}\t{str(pred_spans)}\n")
+            #     scores.append(score)
+    # print("avg F1 %g" % statistics.mean(scores))
 
 
 ## Score : 0.604464
