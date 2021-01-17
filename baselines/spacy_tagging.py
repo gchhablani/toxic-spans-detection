@@ -110,14 +110,15 @@ def main():
     # Score on trial data.
     print("evaluation")
     scores = []
-    for i, text in enumerate(test):
-        pred_spans = []
-        doc = toxic_tagging(text)
-        for ent in doc.ents:
-            pred_spans.extend(range(ent.start_char, ent.start_char + len(ent.text)))
-        # score = semeval2021.f1(pred_spans, spans)
-        with open("spans-pred.txt", "w") as f:
-            f.write(f"{i}\t{str(pred_spans)}\n")
+    with open("spans-pred.txt", "w") as f:
+        for i, text in enumerate(test):
+            pred_spans = []
+            doc = toxic_tagging(text)
+            for ent in doc.ents:
+                pred_spans.extend(range(ent.start_char, ent.start_char + len(ent.text)))
+                # score = semeval2021.f1(pred_spans, spans)
+
+                f.write(f"{i}\t{str(pred_spans)}\n")
             #     scores.append(score)
     # print("avg F1 %g" % statistics.mean(scores))
 
