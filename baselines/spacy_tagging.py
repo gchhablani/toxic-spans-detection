@@ -118,7 +118,7 @@ def main():
                 pred_spans.extend(range(ent.start_char, ent.start_char + len(ent.text)))
                 # score = semeval2021.f1(pred_spans, spans)
 
-                f.write(f"{i}\t{str(pred_spans)}\n")
+            f.write(f"{i}\t{str(pred_spans)}\n")
             #     scores.append(score)
     # print("avg F1 %g" % statistics.mean(scores))
 
