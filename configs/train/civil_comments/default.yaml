@@ -1,0 +1,18 @@
+args:
+  output_dir: civil-bert-large-uncased
+  evaluation_strategy: epoch
+  learning_rate: 2e-5
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 16
+  num_train_epochs: 5
+  weight_decay: 0.01
+  load_best_model_at_end: True
+  metric_for_best_model: eval_loss
+  seed: 2020
+
+trainer:
+  pretrained_tokenizer_name: bert-large-uncased
+  save_model_name: civil-bert-large-uncased-model
+model:
+  pretrained_model_name: bert-large-uncased
+  num_labels: 8
