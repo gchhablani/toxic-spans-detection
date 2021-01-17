@@ -19,8 +19,8 @@ import sklearn
 import spacy
 
 # sys.path.append("./evaluation")
-import semeval2021
-import fix_spans
+from evaluation import semeval2021
+from evaluation import fix_spans
 
 
 def spans_to_ents(doc, spans, label):
@@ -62,15 +62,15 @@ def main():
     """Train and eval a spacy named entity tagger for toxic spans."""
     # Read training data
     print("loading training data")
-    train = read_datafile("./data/modified_train.csv")
+    train = read_datafile("../data/modified_train.csv")
 
     # Read trial data for test.
     print("loading test data")
-    dev = read_datafile("./data/tsd_trial.csv")
+    dev = read_datafile("../data/tsd_trial.csv")
 
     train = train + dev
 
-    test = read_datafile("./data/tsd_test.csv", test=True)
+    test = read_datafile("../data/tsd_test.csv", test=True)
 
     # Convert training data to Spacy Entities
     nlp = spacy.load("en_core_web_sm")
