@@ -22,6 +22,10 @@ class CivilCommentsDataset:
         """
         self.config = config
         self.datasets = load_dataset(config.dataset_name)
+        for key, value in self.datasets.items():
+            self.datasets[key] = self.datasets[key].shard(
+                index=config.index, num_shards=config.num_shards
+            )
         self.tokenizer = AutoTokenizer.from_pretrained(config.model_checkpoint)
         self.tokenized_datasets = self.process()
 
@@ -57,17 +61,15 @@ class CivilCommentsDataset:
             max_length=self.config.max_length,
             padding="max_length",
         )
-        tokenized_examples["labels"] = []
+        labels = []
         column_names = sorted(list(examples.keys()))
 
         for i, example_column in enumerate(examples[column_names[0]]):
-            tokenized_examples["labels"].append([])
+            labels.append([])
             for column_name in column_names:
                 if column_name != "text":
-                    tokenized_examples["labels"][-1].append(
-                        1 if examples[column_name][i] > 0.5 else 0
-                    )
-
+                    labels[-1].append(1 if examples[column_name][i] > 0.5 else 0)
+        tokenized_examples["labels"] = labels
         return tokenized_examples
 
     def get_datasets(self):

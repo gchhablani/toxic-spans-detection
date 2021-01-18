@@ -2,8 +2,9 @@ args:
   output_dir: civil-bert-large-uncased
   evaluation_strategy: epoch
   learning_rate: 2e-5
-  per_device_train_batch_size: 16
-  per_device_eval_batch_size: 16
+  per_device_train_batch_size: 4
+  save_steps: 1000
+  per_device_eval_batch_size: 4
   num_train_epochs: 5
   weight_decay: 0.01
   load_best_model_at_end: True
@@ -15,4 +16,4 @@ trainer:
   save_model_name: civil-bert-large-uncased-model
 model:
   pretrained_model_name: bert-large-uncased
-  num_labels: 8
+  num_labels: 7

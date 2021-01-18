@@ -68,7 +68,9 @@ datasets = configmapper.get_object("datasets", dataset_config.dataset_name)(
     dataset_config
 )
 print(datasets.get_datasets())
+# print(datasets.datasets["train"][0])
 training_datasets = datasets.get_datasets()
+# print(training_datasets["train"][0]["labels"])
 
 
 # Train
@@ -98,7 +100,7 @@ trainer = Trainer(
     default_data_collator,
     training_datasets["train"],
     training_datasets["validation"],
-    tokenizer,
+    tokenizer=tokenizer,
 )
 
 print("### Training ###")

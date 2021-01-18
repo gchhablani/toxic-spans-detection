@@ -61,7 +61,10 @@ class BertForSequenceMultilabelClassification(BertPreTrainedModel):
             else:
                 print("Using BCE with Logits Loss")
                 loss_fct = BCEWithLogitsLoss()
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                loss = loss_fct(
+                    logits.view(-1, self.num_labels),
+                    labels.float().view(-1, self.num_labels),
+                )
 
         output = (logits,) + outputs[2:]
         return ((loss,) + output) if loss is not None else output
