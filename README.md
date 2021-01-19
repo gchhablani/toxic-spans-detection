@@ -122,16 +122,20 @@ def clean_text(text,contiguous_spans):
     return newest_contiguous_spans
 ```
 
-|               | Clean Train | Clean Trial | Reduced Train | Trial |
-| :------------ | ----------: | ----------: | ------------: | ----: |
-| #Tokens(mean) |       47.53 |        46.1 |         47.53 |  46.1 |
-| #Tokens(std)  |       45.46 |       43.82 |         45.46 | 43.82 |
-| #Tokens(max)  |         335 |         234 |           335 |   234 |
-| #Tokens(min)  |           1 |           1 |             1 |     1 |
-| #Words(mean)  |       35.97 |       35.01 |         35.97 | 35.01 |
-| #Words(std)   |       34.97 |       34.42 |         34.97 | 34.42 |
-| #Words(max)   |         192 |         182 |           192 |   182 |
-| #Words(min)   |           1 |           1 |             1 |     1 |
+|               | Clean Train | Clean Trial | Reduced Train |  Trial |
+| :------------ | ----------: | ----------: | ------------: | -----: |
+| #Tokens(mean) |       47.53 |        46.1 |         47.53 |   46.1 |
+| #Tokens(std)  |       45.46 |       43.82 |         45.46 |  43.82 |
+| #Tokens(max)  |         335 |         234 |           335 |    234 |
+| #Tokens(min)  |           1 |           1 |             1 |      1 |
+| #Words(mean)  |       35.97 |       35.01 |         35.97 |  35.01 |
+| #Words(std)   |       34.97 |       34.42 |         34.97 |  34.42 |
+| #Words(max)   |         192 |         182 |           192 |    182 |
+| #Words(min)   |           1 |           1 |             1 |      1 |
+| #Chars(mean)  |      204.69 |      199.47 |        204.69 | 199.47 |
+| #Chars(std)   |      201.37 |      196.63 |        201.37 | 196.63 |
+| #Chars(max)   |        1000 |         998 |          1000 |    998 |
+| #Chars(min)   |           4 |           5 |             4 |      5 |
 
 
 |                            | Train | Trial | Modified Train | Clean Train | Clean Trial |
