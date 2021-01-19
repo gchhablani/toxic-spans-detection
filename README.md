@@ -148,6 +148,11 @@ def clean_text(text,contiguous_spans):
 | Len Contiguous Spans(Std)  | 38.57 | 20.76 | 38.58          | 34.51       | 16.36       |
 | Len Contiguous Spans(Max)  | 994   | 350   | 994            | 997         | 281         |
 | Len Contiguous Spans(Min)  | 1     | 1     | 1              | 1           | 1           |
+| Per Contiguous Spans(Mean) | 0.14  | 0.14  | 0.14           | 0.10        | 0.10        |
+| Per Contiguous Spans(Std)  | 0.20  | 0.20  | 0.20           | 0.15        | 0.15        |
+| Per Contiguous Spans(Max)  | 1.0   | 1.0   | 1.0            | 1.0         | 1.0         |
+| Per Contiguous Spans(Min)  | 0.0   | 0.0   | 0.0            | 0.0         | 0.0         |
+
 
 **Note**: There are five files in the data directory. They are described as follows:
 1. tsd_train.csv : Original Training File
