@@ -1,5 +1,5 @@
 name: toxic_spans_tokens
-model_checkpoint_name: spanbert-large-cased
+model_checkpoint_name: SpanBERT/spanbert-large-cased
 train_files:
   train: ./data/clean_train.csv
   validation: ./data/clean_trial.csv

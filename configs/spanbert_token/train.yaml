@@ -1,6 +1,6 @@
 model_name: autotoken
 pretrained_args:
-  pretrained_model_name_or_path: spanbert-large-cased
+  pretrained_model_name_or_path: SpanBERT/spanbert-large-cased
   num_labels: 2
 
 results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_token"
