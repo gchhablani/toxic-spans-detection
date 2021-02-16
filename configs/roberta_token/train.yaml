@@ -19,4 +19,4 @@ args:
   weight_decay: 0.01
   seed: 42
 
-save_model_name: ${results_dir}/final_model/
+save_model_path: ${results_dir}/final_model/
