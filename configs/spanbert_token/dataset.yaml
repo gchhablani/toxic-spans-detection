@@ -1,0 +1,15 @@
+name: toxic_spans_tokens
+model_checkpoint_name: spanbert-large-cased
+train_files:
+  train: ./data/clean_train.csv
+  validation: ./data/clean_trial.csv
+eval_files:
+  test: ./data/tsd_test.csv
+label_cls: true
+cls_threshold: 0.3 # can be tuned
+token_threshold: 0.0 # can be tuned
+tokenizer_params:
+  truncation: true
+  max_length: 384 # originally we used 200
+  padding: max_length
+  return_offsets_mapping: true
