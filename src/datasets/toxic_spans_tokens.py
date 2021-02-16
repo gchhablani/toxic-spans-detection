@@ -10,8 +10,8 @@ class ToxicSpansTokenDataset:
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config.model_checkpoint_name
         )
-        self.dataset = load_dataset("csv", data_files=self.config.train_files)
-        self.test_dataset = load_dataset("csv", data_files=self.config.eval_files)
+        self.dataset = load_dataset("csv", data_files=dict(self.config.train_files))
+        self.test_dataset = load_dataset("csv", data_files=dict(self.config.eval_files))
 
         self.tokenized_inputs = self.dataset.map(
             self.tokenize_and_align_labels_for_train, batched=True

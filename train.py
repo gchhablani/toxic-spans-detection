@@ -94,10 +94,10 @@ parser.add_argument(
 
 args = parser.parse_args()
 # print(vars(args))
-model_config = OmegaConf.load(args.model)
 train_config = OmegaConf.load(args.train)
 data_config = OmegaConf.load(args.data)
 
+print(data_config.train_files)
 dataset = configmapper.get_object("datasets", data_config.name)(data_config)
 untokenized_train_dataset = dataset.dataset
 tokenized_train_dataset = dataset.tokenized_inputs
@@ -124,6 +124,7 @@ trainer = Trainer(
     args=args,
     train_dataset=tokenized_train_dataset["train"],
     eval_dataset=tokenized_train_dataset["validation"],
+    data_collator=data_collator,
     tokenizer=tokenizer,
     compute_metrics=compute_metrics,
 )

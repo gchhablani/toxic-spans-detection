@@ -7,7 +7,7 @@ results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_token"
 
 args:
   output_dir: ${results_dir}/ckpts/
-  evaluation_stratgy: steps
+  evaluation_strategy: steps
   eval_steps: 500
   logging_steps: 500
   logging_dir: ${results_dir}/logs/
