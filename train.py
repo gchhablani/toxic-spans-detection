@@ -4,8 +4,10 @@ import argparse
 
 # import itertools
 import copy
+import os
 import numpy as np
 from omegaconf import OmegaConf
+
 import torch
 import torch.nn as nn
 from transformers.utils.dummy_pt_objects import Trainer
@@ -130,6 +132,7 @@ trainer = Trainer(
 )
 
 trainer.train()
+os.makedirs(train_config.save_model_path)
 trainer.save(train_config.save_model_path)
 
 
