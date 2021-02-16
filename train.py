@@ -80,25 +80,16 @@ dirname = os.path.dirname(__file__)  ## For Paths Relative to Current File
 ## Config
 parser = argparse.ArgumentParser(prog="train.py", description="Train a model.")
 parser.add_argument(
-    "--model",
-    type=str,
-    action="store",
-    help="The configuration for model",
-    default=os.path.join(dirname, "./configs/models/forty/default.yaml"),
-)
-parser.add_argument(
     "--train",
     type=str,
     action="store",
     help="The configuration for model training/evaluation",
-    default=os.path.join(dirname, "./configs/trainers/forty/train.yaml"),
 )
 parser.add_argument(
     "--data",
     type=str,
     action="store",
     help="The configuration for data",
-    default=os.path.join(dirname, "./configs/datasets/forty/default.yaml"),
 )
 
 args = parser.parse_args()
@@ -138,7 +129,7 @@ trainer = Trainer(
 )
 
 trainer.train()
-trainer.save(train_config.save_model_name)
+trainer.save(train_config.save_model_path)
 
 
 if train_config.tune_threshold:  ## Future Models

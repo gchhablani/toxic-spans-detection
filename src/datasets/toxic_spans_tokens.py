@@ -1,6 +1,6 @@
 from src.utils.mapper import configmapper
 from transformers import AutoTokenizer
-from dataset import load_dataset
+from datasets import load_dataset
 
 
 @configmapper.map("datasets", "toxic_spans_tokens")
@@ -10,18 +10,18 @@ class ToxicSpansTokenDataset:
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config.model_checkpoint_name
         )
-        self.dataset = load_dataset(
-            "csv",data_files = **self.config.train_files
-        )
-        self.test_dataset = load_dataset(
-            "csv",data_files = **self.config.eval_files
-        )
+        self.dataset = load_dataset("csv", data_files=self.config.train_files)
+        self.test_dataset = load_dataset("csv", data_files=self.config.eval_files)
 
-        self.tokenized_inputs = self.dataset.map(self.tokenize_and_align_labels_for_train, batched=True)
+        self.tokenized_inputs = self.dataset.map(
+            self.tokenize_and_align_labels_for_train, batched=True
+        )
         self.test_tokenized_inputs = self.dataset.map(self.tokenize_for_test)
 
     def tokenize_and_align_labels_for_train(self, examples):
-        tokenized_inputs = self.tokenizer(**self.config.tokenizer_params)
+        tokenized_inputs = self.tokenizer(
+            examples["text"], **self.config.tokenizer_params
+        )
 
         # tokenized_inputs["text"] = examples["text"]
         example_spans = []
@@ -65,5 +65,7 @@ class ToxicSpansTokenDataset:
         return tokenized_inputs
 
     def tokenize_for_test(self, examples):
-        tokenized_inputs = self.tokenizer(**self.config.tokenizer_params)
+        tokenized_inputs = self.tokenizer(
+            examples["text"], **self.config.tokenizer_params
+        )
         return tokenized_inputs

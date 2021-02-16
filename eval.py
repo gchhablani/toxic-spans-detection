@@ -76,34 +76,19 @@ def compute_metrics_token(p):
 dirname = os.path.dirname(__file__)  ## For Paths Relative to Current File
 
 ## Config
-parser = argparse.ArgumentParser(prog="train.py", description="Train a model.")
-parser.add_argument(
-    "--model",
-    type=str,
-    action="store",
-    help="The configuration for model",
-    default=os.path.join(dirname, "./configs/models/forty/default.yaml"),
-)
+parser = argparse.ArgumentParser(prog="eval.py", description="Evaluate a model.")
 parser.add_argument(
     "--eval",
     type=str,
     action="store",
     help="The configuration for model training/evaluation",
-    default=os.path.join(dirname, "./configs/trainers/forty/train.yaml"),
-)
-parser.add_argument(
-    "--data",
-    type=str,
-    action="store",
-    help="The configuration for data",
-    default=os.path.join(dirname, "./configs/datasets/forty/default.yaml"),
 )
 
 args = parser.parse_args()
 # print(vars(args))
 model_config = OmegaConf.load(args.model)
 eval_config = OmegaConf.load(args.eval)
-data_config = OmegaConf.load(args.data)
+data_config = eval_config.dataset
 
 dataset = configmapper.get_object("datasets", data_config.name)(data_config)
 untokenized_train_dataset = dataset.dataset
@@ -125,14 +110,8 @@ else:
     data_collator = default_data_collator
 
 ## Need to place data_collator
-args = TrainingArguments(**eval_config.args)
 trainer = Trainer(
     model=model,
-    args=args,
-    train_dataset=tokenized_train_dataset["train"],
-    eval_dataset=tokenized_train_dataset["validation"],
-    tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
 )
 
 if eval_config.with_ground:
