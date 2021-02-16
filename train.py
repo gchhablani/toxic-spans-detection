@@ -5,21 +5,75 @@ import argparse
 # import itertools
 import copy
 import numpy as np
+from omegaconf import OmegaConf
 import torch
 import torch.nn as nn
+from transformers.utils.dummy_pt_objects import Trainer
 
-from src.utils.misc import seed, generate_grid_search_configs
+from datasets import load_metric
+from evaluation.semeval2021 import f1
+from sklearn.metrics import f1_score
+
+from transformers import (
+    AutoTokenizer,
+    DataCollatorForTokenClassification,
+    default_data_collator,
+    TrainingArguments,
+    Trainer,
+)
+from sklearn.metrics import f1_score
 from src.utils.configuration import Config
 
 from src.datasets import *
 from src.models import *
-from src.trainers import *
 
 from src.modules.preprocessors import *
 from src.utils.mapper import configmapper
-from src.utils.logger import Logger
 
 import os
+
+
+def compute_metrics_token(p):
+    predictions, labels = p
+    predictions = np.argmax(predictions, axis=2)  ## batch_size, seq_length
+
+    offset_wise_scores = []
+    # print(len(predictions))
+    for i, prediction in enumerate(predictions):
+        ## Batch Wise
+        # print(len(prediction))
+        ground_spans = eval(validation_spans[i])
+        predicted_spans = []
+        for j, tokenwise_prediction in enumerate(
+            prediction[: len(validation_offsets_mapping[i])]
+        ):
+            if tokenwise_prediction == 1:
+                predicted_spans += list(
+                    range(
+                        validation_offsets_mapping[i][j][0],
+                        validation_offsets_mapping[i][j][1],
+                    )
+                )
+        offset_wise_scores.append(f1(predicted_spans, ground_spans))
+    results_offset = np.mean(offset_wise_scores)
+
+    true_predictions = [
+        [p for (p, l) in zip(pred, label) if l != -100]
+        for pred, label in zip(predictions, labels)
+    ]
+    true_labels = [
+        [l for (p, l) in zip(pred, label) if l != -100]
+        for pred, label in zip(predictions, labels)
+    ]
+
+    results = np.mean(
+        [
+            f1_score(true_label, true_preds)
+            for true_label, true_preds in zip(true_labels, true_predictions)
+        ]
+    )
+    return {"Token-Wise F1": results, "Offset-Wise F1": results_offset}
+
 
 dirname = os.path.dirname(__file__)  ## For Paths Relative to Current File
 
@@ -46,63 +100,46 @@ parser.add_argument(
     help="The configuration for data",
     default=os.path.join(dirname, "./configs/datasets/forty/default.yaml"),
 )
-parser.add_argument(
-    "--grid_search",
-    action="store_true",
-    help="Whether to do a grid_search",
-    default=False,
-)
-### Update Tips : Can provide more options to the user.
-### Can also provide multiple verbosity levels.
 
 args = parser.parse_args()
 # print(vars(args))
-model_config = Config(path=args.model)
-train_config = Config(path=args.train)
-data_config = Config(path=args.data)
-grid_search = args.grid_search
+model_config = OmegaConf.load(args.model)
+train_config = OmegaConf.load(args.train)
+data_config = OmegaConf.load(args.data)
 
-# verbose = args.verbose
+dataset = configmapper.get_object("datasets", data_config.name)(data_config)
+untokenized_train_dataset = dataset.dataset
+tokenized_train_dataset = dataset.tokenized_inputs
+tokenized_test_dataset = dataset.test_tokenized_inputs
 
-# Preprocessor, Dataset, Model
-preprocessor = configmapper.get_object(
-    "preprocessors", data_config.main.preprocessor.name
-)(data_config)
+validation_spans = untokenized_train_dataset["validation"]["spans"]
+validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
 
+model_class = configmapper.get_object("models", train_config.model_name)
+model = model_class.from_pretrained(**train_config.pretrained_args)
 
-if grid_search:
-    train_configs = generate_grid_search_configs(train_config, train_config.grid_search)
-    print(f"Total Configurations Generated: {len(train_configs)}")
-
-    logger = Logger(
-        **train_config.grid_search.hyperparams.train.log.logger_params.as_dict()
-    )
-
-    for train_config in train_configs:
-        print(train_config)
-
-        ## Seed
-        seed(train_config.main_config.seed)
-
-        model, train_data, val_data = preprocessor.preprocess(model_config, data_config)
-        # Trainer
-        trainer = configmapper.get_object("trainers", train_config.trainer_name)(
-            train_config
-        )
-
-        ## Train
-        trainer.train(model, train_data, val_data, logger)
+tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
+if "token" in train_config.model_name:
+    data_collator = DataCollatorForTokenClassification(tokenizer)
+    compute_metrics = compute_metrics_token
 
 else:
-    ## Seed
-    seed(train_config.main_config.seed)
+    data_collator = default_data_collator
 
-    model, train_data, val_data = preprocessor.preprocess(model_config, data_config)
+## Need to place data_collator
+args = TrainingArguments(**train_config.args)
+trainer = Trainer(
+    model=model,
+    args=args,
+    train_dataset=tokenized_train_dataset["train"],
+    eval_dataset=tokenized_train_dataset["validation"],
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+)
 
-    ## Trainer
-    trainer = configmapper.get_object("trainers", train_config.trainer_name)(
-        train_config
-    )
+trainer.train()
+trainer.save(train_config.save_model_name)
 
-    ## Train
-    trainer.train(model, train_data, val_data)
+
+if train_config.tune_threshold:  ## Future Models
+    pass
