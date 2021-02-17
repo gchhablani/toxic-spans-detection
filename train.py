@@ -121,6 +121,13 @@ else:
 
 ## Need to place data_collator
 args = TrainingArguments(**train_config.args)
+checkpoints = sorted(
+    os.listdir(train_config.args.output_dir), key=lambda x: int(x.split("-")[1])
+)
+if len(checkpoints) != 0:
+    print("Found Checkpoints:")
+    print(checkpoints)
+
 trainer = Trainer(
     model=model,
     args=args,
@@ -131,7 +138,10 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
 )
 
-trainer.train()
+if len(checkpoints) != 0:
+    trainer.train(checkpoints[-1])  ## Load from checkpoint
+else:
+    trainer.train()
 os.makedirs(train_config.save_model_path)
 trainer.save(train_config.save_model_path)
 
