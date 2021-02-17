@@ -1,4 +1,4 @@
-train_file: ./data/clean_train.csv
+train_file: ./data/clean_train_trial.csv
 dev_file: ./data/clean_trial.csv
 test_files:
   - ./data/clean_train.csv
@@ -7,4 +7,4 @@ test_files:
   - ./data/tsd_train.csv
   - ./data/tsd_trial.csv
 max_length: 192
-save_dir: "/content/drive/My Drive/ToxicSpans/results/rnnsl/"
+save_dir: "/content/drive/My Drive/ToxicSpans/results/rnnsl_clean_train_trial/"
