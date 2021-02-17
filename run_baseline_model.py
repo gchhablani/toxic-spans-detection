@@ -301,6 +301,8 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         train_token_labels_oh,
         validation_data=(dev_tokens, dev_token_labels_oh),
     )
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
     run_df.to_csv(os.path.join(save_dir, "RNNSL_Run.csv"), index=False)
     # rnnsl.set_up_preprocessing(reduced_train_tokens)
     # rnnsl.model = rnnsl.build()
@@ -464,7 +466,10 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         print("Avg Dice Score on Dev: ", avg_dice_score)
         print("=" * 80)
         with open(
-            os.path.join(save_dir, f"eval_scores_{test_file.split('/')[-1].split('.')[0]}.txt"),'w'
+            os.path.join(
+                save_dir, f"eval_scores_{test_file.split('/')[-1].split('.')[0]}.txt"
+            ),
+            "w",
         ) as f:
             f.write(str(avg_dice_score))
 
@@ -477,7 +482,9 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         #     print("Clean Preds: ", get_text_spans(text, new_offsets))
 
         with open(
-            os.path.join(save_dir, f"spans-pred-{test_file.split('/')[-1].split('.')[0]}.txt"),
+            os.path.join(
+                save_dir, f"spans-pred-{test_file.split('/')[-1].split('.')[0]}.txt"
+            ),
             "w",
         ) as f:
             for i, spans in enumerate(new_final_offset_predictions):
