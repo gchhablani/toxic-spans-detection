@@ -105,14 +105,14 @@ untokenized_train_dataset = dataset.dataset
 tokenized_train_dataset = dataset.tokenized_inputs
 tokenized_test_dataset = dataset.test_tokenized_inputs
 
-validation_spans = untokenized_train_dataset["validation"]["spans"]
-validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
 
 model_class = configmapper.get_object("models", train_config.model_name)
 model = model_class.from_pretrained(**train_config.pretrained_args)
 
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 if "token" in train_config.model_name:
+    validation_spans = untokenized_train_dataset["validation"]["spans"]
+    validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
     data_collator = DataCollatorForTokenClassification(tokenizer)
     compute_metrics = compute_metrics_token
 
@@ -121,6 +121,8 @@ else:
 
 ## Need to place data_collator
 args = TrainingArguments(**train_config.args)
+if not os.path.exists(train_config.args.output_dir):
+    os.makedirs(train_config.args.output_dir)
 checkpoints = sorted(
     os.listdir(train_config.args.output_dir), key=lambda x: int(x.split("-")[1])
 )
@@ -147,6 +149,3 @@ else:
 if not os.path.exists(train_config.save_model_path):
     os.makedirs(train_config.save_model_path)
 trainer.save_model(train_config.save_model_path)
-
-if train_config.tune_threshold:  ## Future Models
-    pass
