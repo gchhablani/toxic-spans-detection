@@ -139,7 +139,9 @@ trainer = Trainer(
 )
 
 if len(checkpoints) != 0:
-    trainer.train(checkpoints[-1])  ## Load from checkpoint
+    trainer.train(
+        os.path.join(train_config.args.output_dir), checkpoints[-1]
+    )  ## Load from checkpoint
 else:
     trainer.train()
 os.makedirs(train_config.save_model_path)
