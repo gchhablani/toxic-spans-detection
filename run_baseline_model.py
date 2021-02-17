@@ -243,7 +243,7 @@ def dev():
     print("=" * 80)
 
 
-def predict(train_file, dev_file, test_files, max_length, save_dir):
+def predict(train_file, dev_file, test_files, max_length, save_dir, max_epochs=100):
     # train_file = "./data/tsd_train.csv"
     # dev_file = "./data/tsd_trial.csv"
     # test_file = "./data/tsd_test.csv"
@@ -294,7 +294,7 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         for dev_token_label in dev_token_labels
     ]
 
-    rnnsl = RNNSL()
+    rnnsl = RNNSL(max_epochs=max_epochs)
 
     run_df = rnnsl.fit(
         train_tokens,
