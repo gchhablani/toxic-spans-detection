@@ -62,7 +62,8 @@ def main():
     """Train and eval a spacy named entity tagger for toxic spans."""
     # Read training data
     print("loading training data")
-    train = read_datafile("../data/clean_train.csv")
+    datasets = {}
+    datasets["clean_train"] = read_datafile("../data/clean_train.csv")
 
     # Read trial data for test.
     # print("loading dev data")
@@ -70,14 +71,17 @@ def main():
 
     # train = train + dev
 
-    test = read_datafile("../data/tsd_test.csv", test=True)
+    datasets["clean_trial"] = read_datafile("../data/clean_trial.csv")
+    datasets["tsd_train"] = read_datafile("../data/tsd_train.csv")
+    datasets["tsd_trial"] = read_datafile("../data/tsd_trial.csv")
+    datasets["tsd_test"] = read_datafile("../data/tsd_test_spans.csv")
 
     # Convert training data to Spacy Entities
     nlp = spacy.load("en_core_web_sm")
 
     print("preparing training data")
     training_data = []
-    for n, (spans, text) in enumerate(train):
+    for n, (spans, text) in enumerate(datasets["clean_train"]):
         doc = nlp(text)
         ents = spans_to_ents(doc, set(spans), "TOXIC")
         training_data.append((doc.text, {"entities": ents}))
@@ -109,18 +113,22 @@ def main():
 
     # Score on dev data.
     print("evaluation")
-    scores = []
-    with open("spans-pred.txt", "w") as f:
-        for i, text in enumerate(test):
-            pred_spans = []
-            doc = toxic_tagging(text)
-            for ent in doc.ents:
-                pred_spans.extend(range(ent.start_char, ent.start_char + len(ent.text)))
-                # score = semeval2021.f1(pred_spans, spans)
+    for dataset in datasets.keys():
+        scores = []
+        with open(f"spans-pred-{dataset}.txt", "w") as f:
+            for i, (spans, text) in enumerate(datasets[dataset]):
+                pred_spans = []
+                doc = toxic_tagging(text)
+                for ent in doc.ents:
+                    pred_spans.extend(
+                        range(ent.start_char, ent.start_char + len(ent.text))
+                    )
+                score = semeval2021.f1(pred_spans, spans)
+                f.write(f"{i}\t{str(pred_spans)}\n")
+                scores.append(score)
 
-            f.write(f"{i}\t{str(pred_spans)}\n")
-            #     scores.append(score)
-    # print("avg F1 %g" % statistics.mean(scores))
+        with open(f"eval_scores_{dataset}.txt", "w") as f:
+            f.write(str(statistics.mean(scores)))
 
 
 ## Score : 0.615544
