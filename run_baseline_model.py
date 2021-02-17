@@ -466,7 +466,7 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         with open(
             os.path.join(save_dir, f"eval_scores_{test_file.split('.')[0].split('/')[-1]}.txt"),'w'
         ) as f:
-            f.write(avg_dice_score)
+            f.write(str(avg_dice_score))
 
         # for i in range(20):
         #     old_offsets = final_offset_predictions[i]
