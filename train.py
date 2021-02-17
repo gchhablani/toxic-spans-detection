@@ -118,6 +118,7 @@ if "token" in train_config.model_name:
 
 else:
     data_collator = default_data_collator
+    compute_metrics = None
 
 ## Need to place data_collator
 args = TrainingArguments(**train_config.args)
