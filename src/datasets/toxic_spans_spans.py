@@ -1,7 +1,7 @@
 from src.utils.mapper import configmapper
 from transformers import AutoTokenizer
 import pandas as pd
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 from evaluation.fix_spans import _contiguous_ranges
 
 
@@ -19,7 +19,7 @@ class ToxicSpansSpansDataset:
         self.intermediate_dataset = self.dataset.map(
             self.create_train_features, batched=True
         )
-        self.intermediate_test_dataset = self.dataset.map(
+        self.intermediate_test_dataset = self.test_dataset.map(
             self.create_test_features, batched=True
         )
 
@@ -33,12 +33,12 @@ class ToxicSpansSpansDataset:
     def create_train_features(self, examples):
         features = {"context": [], "id": [], "question": [], "title": []}
         id = 0
-        for row_number in range(len(examples)):
-            row = examples[row_number]
-            context = row["text"]
+        # print(examples)
+        for row_number in range(len(examples["text"])):
+            context = examples["text"][row_number]
             question = "offense"
             title = context.split(" ")[0]
-            span = eval(row["spans"])
+            span = eval(examples["spans"][row_number])
             contiguous_spans = _contiguous_ranges(span)
             for lst in contiguous_spans:
                 lst = list(lst)
@@ -64,9 +64,8 @@ class ToxicSpansSpansDataset:
     def create_test_features(self, examples):
         features = {"context": [], "id": [], "question": [], "title": []}
         id = 0
-        for row_number in range(len(examples)):
-            row = examples[row_number]
-            context = row["text"]
+        for row_number in range(len(examples["text"])):
+            context = examples["text"][row_number]
             question = "offense"
             title = context.split(" ")[0]
             features["context"].append(context)
