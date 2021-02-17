@@ -144,9 +144,9 @@ if len(checkpoints) != 0:
     )  ## Load from checkpoint
 else:
     trainer.train()
-os.makedirs(train_config.save_model_path)
-trainer.save(train_config.save_model_path)
-
+if not os.path.exists(train_config.save_model_path):
+    os.makedirs(train_config.save_model_path)
+trainer.save_model(train_config.save_model_path)
 
 if train_config.tune_threshold:  ## Future Models
     pass
