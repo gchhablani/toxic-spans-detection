@@ -310,7 +310,7 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
     print("=" * 80)
     print("Threshold: ", rnnsl.threshold)
     with open(os.path.join(save_dir, "thresh.txt"), "w") as f:
-        f.write(rnnsl.threshold)
+        f.write(str(rnnsl.threshold))
 
     token_predictions = rnnsl.get_toxic_offsets(
         val_data[0],
@@ -416,8 +416,10 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
             to_categorical(test_token_label, num_classes=3)
             for test_token_label in test_token_labels
         ]
+        test_spans = [spans for spans, text in test]
+        test_texts = [text for spans, text in test]
 
-        check_for_mismatch(test_tokens, test, test_offset_mapping)
+        check_for_mismatch(test_tokens, test_texts, test_offset_mapping)
         final_token_predictions = rnnsl.get_toxic_offsets(test_tokens)
         print("=" * 80)
         print(
@@ -446,9 +448,6 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
                             test_offset_mapping[example][token][1],
                         )
                     )
-        test_spans = [spans for spans, text in test]
-        test_texts = [text for spans, text in test]
-
         new_final_offset_predictions = [
             clean_predicted_text(text, offsets)
             for offsets, text in zip(final_offset_predictions, test_texts)
@@ -465,7 +464,7 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         print("Avg Dice Score on Dev: ", avg_dice_score)
         print("=" * 80)
         with open(
-            os.path.join(save_dir, f"eval_scores_{test_file.split('./')[-2]}.txt")
+            os.path.join(save_dir, f"eval_scores_{test_file.split('.')[0].split('/')[-1]}.txt"),'w'
         ) as f:
             f.write(avg_dice_score)
 
@@ -478,7 +477,7 @@ def predict(train_file, dev_file, test_files, max_length, save_dir):
         #     print("Clean Preds: ", get_text_spans(text, new_offsets))
 
         with open(
-            os.path.join(save_dir, f"/spans-pred-{test_file.split('./')[-2]}.txt"),
+            os.path.join(save_dir, f"/spans-pred-{test_file.split('.')[0].split('/')[-1]}.txt"),
             "w",
         ) as f:
             for i, spans in enumerate(new_final_offset_predictions):
@@ -499,5 +498,5 @@ if __name__ == "__main__":
         help="The configuration for model training/evaluation",
     )
     args = parser.parse_args()
-    config = OmegaConf.loads(args.config)
+    config = OmegaConf.load(args.config)
     predict(**dict(config))
