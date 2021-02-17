@@ -17,17 +17,25 @@ class ToxicSpansSpansDataset:
         self.test_dataset = load_dataset("csv", data_files=dict(self.config.eval_files))
 
         self.intermediate_dataset = self.dataset.map(
-            self.create_train_features, batched=True
+            self.create_train_features,
+            batched=True,
+            remove_columns=self.dataset["train"].column_names,
         )
         self.intermediate_test_dataset = self.test_dataset.map(
-            self.create_test_features, batched=True
+            self.create_test_features,
+            batched=True,
+            remove_columns=self.test_dataset["test"].column_names,
         )
 
         self.tokenized_inputs = self.intermediate_dataset.map(
-            self.prepare_train_features, batched=True
+            self.prepare_train_features,
+            batched=True,
+            remove_columns=self.intermediate_dataset["train"].column_names,
         )
         self.test_tokenized_inputs = self.intermediate_test_dataset.map(
-            self.prepare_test_features, batched=True
+            self.prepare_test_features,
+            batched=True,
+            remove_columns=self.intermediate_test_dataset["test"].column_names,
         )
 
     def create_train_features(self, examples):
@@ -168,7 +176,7 @@ class ToxicSpansSpansDataset:
 
         return tokenized_examples
 
-    def prepare_validation_features(self, examples):
+    def prepare_test_features(self, examples):
 
         """Generate tokenized validation features from examples.
 
