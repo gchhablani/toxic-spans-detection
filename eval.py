@@ -1,4 +1,4 @@
-"""Train File."""
+"""Eval File."""
 ## Imports
 import argparse
 
@@ -86,7 +86,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 # print(vars(args))
-model_config = OmegaConf.load(args.model)
 eval_config = OmegaConf.load(args.eval)
 data_config = eval_config.dataset
 
@@ -114,6 +113,8 @@ trainer = Trainer(
     model=model,
 )
 
+if not os.path.exists(eval_config.save_dir):
+    os.makedirs(eval_config.save_dir)
 if eval_config.with_ground:
     for key in tokenized_train_dataset.keys():
         predictions = trainer.predict(tokenized_train_dataset[key])

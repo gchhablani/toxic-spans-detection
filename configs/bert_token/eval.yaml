@@ -6,7 +6,6 @@ dataset:
   train_files:
     train: ./data/clean_train.csv
     validation: ./data/clean_trial.csv
-    test: ./data/tsd_test.csv
     original_train: ./data/tsd_train.csv
     original_test: ./data/tsd_test_spans.csv
   eval_files:
