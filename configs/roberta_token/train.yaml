@@ -10,6 +10,7 @@ args:
   evaluation_strategy: steps
   eval_steps: 500
   logging_steps: 500
+  logging_first_step: true
   logging_dir: ${results_dir}/logs/
   learning_rate: 2e-5
   save_steps: 500
