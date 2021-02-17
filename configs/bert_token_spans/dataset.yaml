@@ -1,0 +1,18 @@
+name: toxic_spans_spans
+model_checkpoint_name: bert-large-uncased
+train_files:
+  train: ./data/clean_train.csv
+  validation: ./data/clean_trial.csv
+eval_files:
+  test: ./data/tsd_test.csv
+label_cls: true
+cls_threshold: 0.3 # can be tuned
+token_threshold: 0.0 # can be tuned
+tokenizer_params:
+  truncation: "only_second"
+  max_length: 384
+  stride: 128
+  return_overflowing_tokens: true
+  return_offsets_mapping: true
+  return_token_type_ids: true
+  padding: max_length
