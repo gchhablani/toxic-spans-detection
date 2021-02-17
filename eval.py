@@ -16,7 +16,7 @@ from transformers import (
     AutoTokenizer,
     DataCollatorForTokenClassification,
     default_data_collator,
-    TrainingArguments,
+    pipeline,
     Trainer,
 )
 from sklearn.metrics import f1_score
@@ -91,91 +91,246 @@ data_config = eval_config.dataset
 
 dataset = configmapper.get_object("datasets", data_config.name)(data_config)
 untokenized_train_dataset = dataset.dataset
+untokenized_test_dataset = dataset.test_dataset
 tokenized_train_dataset = dataset.tokenized_inputs
 tokenized_test_dataset = dataset.test_tokenized_inputs
 
-validation_spans = untokenized_train_dataset["validation"]["spans"]
-validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
-
 model_class = configmapper.get_object("models", eval_config.model_name)
 model = model_class.from_pretrained(**eval_config.pretrained_args)
-
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
+
 if "token" in eval_config.model_name:
+    validation_spans = untokenized_train_dataset["validation"]["spans"]
+    validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
     data_collator = DataCollatorForTokenClassification(tokenizer)
     compute_metrics = compute_metrics_token
 
 else:
+    nlp = pipeline(task="question-answering", model=model, tokenizer=tokenizer)
     data_collator = default_data_collator
 
 ## Need to place data_collator
-trainer = Trainer(
-    model=model,
-)
 
 if not os.path.exists(eval_config.save_dir):
     os.makedirs(eval_config.save_dir)
-if eval_config.with_ground:
-    for key in tokenized_train_dataset.keys():
-        predictions = trainer.predict(tokenized_train_dataset[key])
 
-        preds = predictions.predictions
-        preds = np.argmax(preds, axis=2)
-        f1_scores = []
-        with open(
-            os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
-        ) as f:
-            for i, pred in enumerate(preds):
-                ## Batch Wise
-                # print(len(prediction))
-                predicted_spans = []
-                for j, tokenwise_prediction in enumerate(
-                    pred[: len(tokenized_train_dataset[key]["offset_mapping"][i])]
-                ):
-                    if tokenwise_prediction == 1:
-                        predicted_spans += list(
-                            range(
-                                tokenized_train_dataset[key]["offset_mapping"][i][j][0],
-                                tokenized_train_dataset[key]["offset_mapping"][i][j][1],
+if "token" in eval_config.model_name:
+    trainer = Trainer(
+        model=model,
+    )
+    if eval_config.with_ground:
+        for key in tokenized_train_dataset.keys():
+            predictions = trainer.predict(tokenized_train_dataset[key])
+
+            preds = predictions.predictions
+            preds = np.argmax(preds, axis=2)
+            f1_scores = []
+            with open(
+                os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
+            ) as f:
+                for i, pred in enumerate(preds):
+                    ## Batch Wise
+                    # print(len(prediction))
+                    predicted_spans = []
+                    for j, tokenwise_prediction in enumerate(
+                        pred[: len(tokenized_train_dataset[key]["offset_mapping"][i])]
+                    ):
+                        if tokenwise_prediction == 1:
+                            predicted_spans += list(
+                                range(
+                                    tokenized_train_dataset[key]["offset_mapping"][i][
+                                        j
+                                    ][0],
+                                    tokenized_train_dataset[key]["offset_mapping"][i][
+                                        j
+                                    ][1],
+                                )
                             )
+                    if i == len(preds) - 1:
+                        f.write(f"{i}\t{str(predicted_spans)}")
+                    else:
+                        f.write(f"{i}\t{str(predicted_spans)}\n")
+                    f1_scores.append(
+                        f1(
+                            predicted_spans,
+                            eval(untokenized_train_dataset[key]["spans"][i]),
                         )
-                if i == len(preds) - 1:
-                    f.write(f"{i}\t{str(predicted_spans)}")
-                else:
-                    f.write(f"{i}\t{str(predicted_spans)}\n")
-                f1_scores.append(
-                    f1(
-                        predicted_spans,
-                        eval(untokenized_train_dataset[key]["spans"][i]),
                     )
-                )
-        with open(os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt")) as f:
-            f.write(np.mean(f1_scores))
-else:
-    for key in tokenized_test_dataset.keys():
-        predictions = trainer.predict(tokenized_test_dataset[key])
+            with open(
+                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt")
+            ) as f:
+                f.write(str(np.mean(f1_scores)))
+    else:
+        for key in tokenized_test_dataset.keys():
+            predictions = trainer.predict(tokenized_test_dataset[key])
 
-        preds = predictions.predictions
-        preds = np.argmax(preds, axis=2)
-        f1_scores = []
-        with open(
-            os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
-        ) as f:
-            for i, pred in enumerate(preds):
-                ## Batch Wise
-                # print(len(prediction))
-                predicted_spans = []
-                for j, tokenwise_prediction in enumerate(
-                    pred[: len(tokenized_test_dataset[key]["offset_mapping"][i])]
-                ):
-                    if tokenwise_prediction == 1:
-                        predicted_spans += list(
-                            range(
-                                tokenized_test_dataset[key]["offset_mapping"][i][j][0],
-                                tokenized_test_dataset[key]["offset_mapping"][i][j][1],
+            preds = predictions.predictions
+            preds = np.argmax(preds, axis=2)
+            f1_scores = []
+            with open(
+                os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
+            ) as f:
+                for i, pred in enumerate(preds):
+                    ## Batch Wise
+                    # print(len(prediction))
+                    predicted_spans = []
+                    for j, tokenwise_prediction in enumerate(
+                        pred[: len(tokenized_test_dataset[key]["offset_mapping"][i])]
+                    ):
+                        if tokenwise_prediction == 1:
+                            predicted_spans += list(
+                                range(
+                                    tokenized_test_dataset[key]["offset_mapping"][i][j][
+                                        0
+                                    ],
+                                    tokenized_test_dataset[key]["offset_mapping"][i][j][
+                                        1
+                                    ],
+                                )
                             )
-                        )
-                if i == len(preds) - 1:
-                    f.write(f"{i}\t{str(predicted_spans)}")
+                    if i == len(preds) - 1:
+                        f.write(f"{i}\t{str(predicted_spans)}")
+                    else:
+                        f.write(f"{i}\t{str(predicted_spans)}\n")
+
+else:
+    # QA Eval
+    val_original = untokenized_train_dataset["validation"]
+
+    topk = eval_config.topk
+    all_predicted_spans = []
+    best_threshold = -1
+    best_macro_f1 = -1
+    for row_number in range(len(val_original)):
+        row = val_original[row_number]
+        context = row["text"]
+        question = "offense"
+        while True and topk > 0:
+            try:
+                if topk == 1:
+                    spans = [nlp(question=question, context=context, topk=topk)]
                 else:
-                    f.write(f"{i}\t{str(predicted_spans)}\n")
+                    spans = nlp(question=question, context=context, topk=topk)
+                break
+            except:
+                topk -= 1
+                if topk == 0:
+                    break
+        all_predicted_spans.append(spans)  # [examples,topk]
+    thresholds = np.linspace(0, 1, 100)
+    for threshold in thresholds:
+        macro_f1 = 0
+        for row_number in range(len(val_original)):
+            row = val_original.iloc[row_number]
+            ground_spans = eval(row["spans"])
+            predicted_spans = all_predicted_spans[row_number]
+            predicted_spans = [
+                span
+                for span in predicted_spans
+                if torch.sigmoid(torch.tensor(span["score"])) > threshold
+            ]
+
+            final_predicted_spans = []
+            for span in predicted_spans:
+                final_predicted_spans += list(range(span["start"], span["end"]))
+
+            final_predicted_spans = sorted(spans)
+            macro_f1 += f1(final_predicted_spans, ground_spans)
+        avg = macro_f1 / len(val_original)
+        if avg > best_macro_f1:
+            best_macro_f1 = avg
+            best_threshold = threshold
+
+    with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
+        f.write(str(best_threshold) + "\n")
+        f.write(str(best_macro_f1))
+
+    if eval_config.with_ground:
+        for key in untokenized_train_dataset.keys():
+            f1_scores = []
+            temp_test_dataset = untokenized_train_dataset[key]
+            with open(
+                os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+            ) as f:
+                for row_number in range(len(temp_test_dataset)):
+                    row = temp_test_dataset[row_number]
+                    context = row["text"]
+                    question = "offense"
+                    while True and topk > 0:
+                        try:
+                            if topk == 1:
+                                spans = [
+                                    nlp(question=question, context=context, topk=topk)
+                                ]
+                            else:
+                                spans = nlp(
+                                    question=question, context=context, topk=topk
+                                )
+                            break
+                        except:
+                            topk -= 1
+                            if topk == 0:
+                                break
+                    predicted_spans = spans
+                    predicted_spans = [
+                        span
+                        for span in predicted_spans
+                        if torch.sigmoid(torch.tensor(span["score"])) > best_threshold
+                    ]
+
+                    final_predicted_spans = []
+                    for span in predicted_spans:
+                        final_predicted_spans += list(range(span["start"], span["end"]))
+
+                    final_predicted_spans = sorted(spans)
+                    if row_number != len(temp_test_dataset) - 1:
+                        f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
+                    else:
+                        f.write(f"{row_number}\t{str(final_predicted_spans)}")
+                    f1_scores.append(f1(final_predicted_spans, eval(row["spans"])))
+            with open(
+                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt")
+            ) as f:
+                f.write(str(np.mean(f1_scores)))
+
+    else:
+        for key in untokenized_test_dataset.keys():
+            temp_test_dataset = untokenized_test_dataset[key]
+            with open(
+                os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+            ) as f:
+                for row_number in range(len(temp_test_dataset)):
+                    row = temp_test_dataset[row_number]
+                    context = row["text"]
+                    question = "offense"
+                    while True and topk > 0:
+                        try:
+                            if topk == 1:
+                                spans = [
+                                    nlp(question=question, context=context, topk=topk)
+                                ]
+                            else:
+                                spans = nlp(
+                                    question=question, context=context, topk=topk
+                                )
+                            break
+                        except:
+                            topk -= 1
+                            if topk == 0:
+                                break
+                    predicted_spans = spans
+                    predicted_spans = [
+                        span
+                        for span in predicted_spans
+                        if torch.sigmoid(torch.tensor(span["score"])) > best_threshold
+                    ]
+
+                    final_predicted_spans = []
+                    for span in predicted_spans:
+                        final_predicted_spans += list(range(span["start"], span["end"]))
+
+                    final_predicted_spans = sorted(spans)
+                    if row_number != len(temp_test_dataset) - 1:
+                        f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
+                    else:
+                        f.write(f"{row_number}\t{str(final_predicted_spans)}")
