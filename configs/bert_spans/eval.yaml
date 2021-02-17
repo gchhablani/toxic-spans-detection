@@ -21,4 +21,5 @@ dataset:
 pretrained_args:
   pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
 with_ground: true
+topk: 25
 save_dir: ${results_dir}/preds/
