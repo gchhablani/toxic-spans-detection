@@ -323,7 +323,7 @@ elif "token" in eval_config.model_name:
             with open(
                 os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
             ) as f:
-                f.write(np.mean(f1_scores))
+                f.write(str(np.mean(f1_scores)))
     else:
         for key in tokenized_test_dataset.keys():
             temp_offset_mapping = tokenized_test_dataset[key]["offset_mapping"]
