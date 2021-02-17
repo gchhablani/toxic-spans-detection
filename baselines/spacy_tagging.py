@@ -62,13 +62,13 @@ def main():
     """Train and eval a spacy named entity tagger for toxic spans."""
     # Read training data
     print("loading training data")
-    train = read_datafile("../data/modified_train.csv")
+    train = read_datafile("../data/clean_train.csv")
 
     # Read trial data for test.
-    print("loading test data")
-    dev = read_datafile("../data/tsd_trial.csv")
+    # print("loading dev data")
+    # dev = read_datafile("../data/tsd_trial.csv")
 
-    train = train + dev
+    # train = train + dev
 
     test = read_datafile("../data/tsd_test.csv", test=True)
 
@@ -107,7 +107,7 @@ def main():
                 toxic_tagging.update(texts, annotations, drop=0.5, losses=losses)
             print("Losses", losses)
 
-    # Score on trial data.
+    # Score on dev data.
     print("evaluation")
     scores = []
     with open("spans-pred.txt", "w") as f:
