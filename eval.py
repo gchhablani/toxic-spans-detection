@@ -239,7 +239,7 @@ if "tokenspans" in eval_config.model_name:
             intermediate_test = untokenized_test_dataset[key].map(
                 dataset.create_test_features,
                 batched=True,
-                remove_columns=untokenized_est_dataset[key].column_names,
+                remove_columns=untokenized_test_dataset[key].column_names,
             )
             tokenized_test = intermediate_test.map(
                 dataset.prepare_test_features,
@@ -285,7 +285,9 @@ elif "token" in eval_config.model_name:
     )
     if eval_config.with_ground:
         for key in tokenized_train_dataset.keys():
+            temp_offset_mapping = tokenized_train_dataset[key]["offset_mapping"]
             predictions = trainer.predict(tokenized_train_dataset[key])
+            temp_untokenized_spans = untokenized_train_dataset[key]["spans"]
 
             preds = predictions.predictions
             preds = np.argmax(preds, axis=2)
@@ -293,22 +295,19 @@ elif "token" in eval_config.model_name:
             with open(
                 os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
             ) as f:
-                for i, pred in enumerate(preds):
+                for i, pred in tqdm(enumerate(preds)):
+                    # print(key,i)
                     ## Batch Wise
                     # print(len(prediction))
                     predicted_spans = []
                     for j, tokenwise_prediction in enumerate(
-                        pred[: len(tokenized_train_dataset[key]["offset_mapping"][i])]
+                        pred[: len(temp_offset_mapping[i])]
                     ):
                         if tokenwise_prediction == 1:
                             predicted_spans += list(
                                 range(
-                                    tokenized_train_dataset[key]["offset_mapping"][i][
-                                        j
-                                    ][0],
-                                    tokenized_train_dataset[key]["offset_mapping"][i][
-                                        j
-                                    ][1],
+                                    temp_offset_mapping[i][j][0],
+                                    temp_offset_mapping[i][j][1],
                                 )
                             )
                     if i == len(preds) - 1:
@@ -318,46 +317,42 @@ elif "token" in eval_config.model_name:
                     f1_scores.append(
                         f1(
                             predicted_spans,
-                            eval(untokenized_train_dataset[key]["spans"][i]),
+                            eval(temp_untokenized_spans[i]),
                         )
                     )
             with open(
-                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt")
+                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
             ) as f:
-                f.write(str(np.mean(f1_scores)))
+                f.write(np.mean(f1_scores))
     else:
         for key in tokenized_test_dataset.keys():
+            temp_offset_mapping = tokenized_test_dataset[key]["offset_mapping"]
             predictions = trainer.predict(tokenized_test_dataset[key])
-
             preds = predictions.predictions
             preds = np.argmax(preds, axis=2)
             f1_scores = []
             with open(
                 os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
             ) as f:
-                for i, pred in enumerate(preds):
+                for i, pred in tqdm(enumerate(preds)):
+                    # print(key,i)
                     ## Batch Wise
                     # print(len(prediction))
                     predicted_spans = []
                     for j, tokenwise_prediction in enumerate(
-                        pred[: len(tokenized_test_dataset[key]["offset_mapping"][i])]
+                        pred[: len(temp_offset_mapping[i])]
                     ):
                         if tokenwise_prediction == 1:
                             predicted_spans += list(
                                 range(
-                                    tokenized_test_dataset[key]["offset_mapping"][i][j][
-                                        0
-                                    ],
-                                    tokenized_test_dataset[key]["offset_mapping"][i][j][
-                                        1
-                                    ],
+                                    temp_offset_mapping[i][j][0],
+                                    temp_offset_mapping[i][j][1],
                                 )
                             )
                     if i == len(preds) - 1:
                         f.write(f"{i}\t{str(predicted_spans)}")
                     else:
                         f.write(f"{i}\t{str(predicted_spans)}\n")
-
 else:
     # QA Eval
     val_original = untokenized_train_dataset["validation"]
