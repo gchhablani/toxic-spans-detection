@@ -10,10 +10,6 @@ from omegaconf import OmegaConf
 
 import torch
 import torch.nn as nn
-from transformers.utils.dummy_pt_objects import (
-    AutoModelForSequenceClassification,
-    Trainer,
-)
 
 from copy import deepcopy
 from datasets import load_metric
@@ -22,6 +18,7 @@ from sklearn.metrics import f1_score
 
 from transformers import (
     AutoTokenizer,
+    AutoModelForSequenceClassification,
     DataCollatorForTokenClassification,
     default_data_collator,
     TrainingArguments,
