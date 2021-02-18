@@ -1,6 +1,6 @@
 model_name: autotoken
 pretrained_args:
-  pretrained_model_name_or_path: roberta-large
+  pretrained_model_name_or_path: roberta-base
   num_labels: 2
 
 results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_base_token"
