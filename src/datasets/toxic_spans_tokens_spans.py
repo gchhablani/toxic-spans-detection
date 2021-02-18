@@ -126,7 +126,7 @@ class ToxicSpansTokensSpansDataset:
 
             token_labels.append([])
             input_ids = tokenized_examples["input_ids"][i]
-            spans = eval(examples["spans"][i])
+            spans = examples["spans"][i]
             if self.config.label_cls:
                 cls_label = (
                     1
@@ -139,13 +139,13 @@ class ToxicSpansTokensSpansDataset:
                 )  ## Make class label based on threshold
             else:
                 cls_label = -100
-            for j, offsets in enumerate(offset_mapping):
+            for j, offset in enumerate(offsets):
                 if tokenized_examples["input_ids"][i][j] == self.tokenizer.cls_token_id:
                     token_labels[-1].append(cls_label)
-                elif offsets[0] == offsets[1] and offsets[0] == 0:
+                elif offset[0] == offset[1] and offset[0] == 0:
                     token_labels[-1].append(-100)  ## SPECIAL TOKEN
                 else:
-                    toxic_offsets = [x in spans for x in range(offsets[0], offsets[1])]
+                    toxic_offsets = [x in spans for x in range(offset[0], offset[1])]
                     ## If any part of the the token is in span, mark it as Toxic
                     if (
                         len(toxic_offsets) > 0
