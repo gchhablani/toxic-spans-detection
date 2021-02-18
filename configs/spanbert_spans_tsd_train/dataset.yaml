@@ -1,0 +1,14 @@
+name: toxic_spans_spans
+model_checkpoint_name: SpanBERT/spanbert-large-cased
+train_files:
+  train: ./data/tsd_train.csv
+  validation: ./data/tsd_trial.csv
+eval_files:
+  test: ./data/tsd_test.csv
+tokenizer_params:
+  truncation: "only_second"
+  max_length: 384
+  stride: 128
+  return_overflowing_tokens: true
+  return_offsets_mapping: true
+  padding: max_length
