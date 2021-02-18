@@ -10,8 +10,12 @@ from omegaconf import OmegaConf
 
 import torch
 import torch.nn as nn
-from transformers.utils.dummy_pt_objects import Trainer
+from transformers.utils.dummy_pt_objects import (
+    AutoModelForSequenceClassification,
+    Trainer,
+)
 
+from copy import deepcopy
 from datasets import load_metric
 from evaluation.semeval2021 import f1
 from sklearn.metrics import f1_score
@@ -23,6 +27,7 @@ from transformers import (
     TrainingArguments,
     Trainer,
 )
+
 from sklearn.metrics import f1_score
 from src.utils.configuration import Config
 
@@ -33,6 +38,7 @@ from src.modules.preprocessors import *
 from src.utils.mapper import configmapper
 
 import os
+import gc
 
 
 def compute_metrics_token(p):
@@ -107,7 +113,17 @@ tokenized_test_dataset = dataset.test_tokenized_inputs
 
 
 model_class = configmapper.get_object("models", train_config.model_name)
-model = model_class.from_pretrained(**train_config.pretrained_args)
+
+if "toxic-bert" in train_config.pretrained_args.pretrained_model_name_or_path:
+    toxicbert_model = AutoModelForSequenceClassification.from_pretrained(
+        train_config.pretrained_args.pretrained_model_name_or_path
+    )
+    train_config.pretrained_args.pretrained_model_name_or_path = "bert-base-uncased"
+    model = model_class.from_pretrained(**train_config.pretrained_args)
+    model.bert = deepcopy(toxicbert_model.bert)
+    gc.collect()
+else:
+    model = model_class.from_pretrained(**train_config.pretrained_args)
 
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 if "token" in train_config.model_name:
@@ -115,6 +131,7 @@ if "token" in train_config.model_name:
     validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
     data_collator = DataCollatorForTokenClassification(tokenizer)
     compute_metrics = compute_metrics_token
+
 
 else:
     data_collator = default_data_collator
