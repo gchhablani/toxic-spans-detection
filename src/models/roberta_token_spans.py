@@ -1,21 +1,22 @@
 import torch.nn as nn
 import torch
 from torch.nn import CrossEntropyLoss
-from transformers import RobertaPreTrainedModel, RobertaModel
+from transformers import RobertaModel
+from transformers.models.roberta.modeling_roberta import RobertaPreTrainedModel
 from src.utils.mapper import configmapper
 
 
 @configmapper.map("models", "roberta_token_spans")
-class BertModelForTokenAndSpans(RobertaPreTrainedModel):
+class RobertaModelForTokenAndSpans(RobertaPreTrainedModel):
     def __init__(self, config, num_token_labels=2, num_qa_labels=2):
-        super(AutoModelForTokenAndSpans, self).__init__(transformers_config)
+        super(RobertaModelForTokenAndSpans, self).__init__(config)
         self.bert = RobertaModel(config)
         self.num_token_labels = num_token_labels
         self.num_qa_labels = num_qa_labels
 
-        self.dropout = nn.Dropout(transformers_config.hidden_dropout_prob)
-        self.classifier = nn.Linear(transformers_config.hidden_size, num_token_labels)
-        self.qa_outputs = nn.Linear(transformers_config.hidden_size, num_qa_labels)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.classifier = nn.Linear(config.hidden_size, num_token_labels)
+        self.qa_outputs = nn.Linear(config.hidden_size, num_qa_labels)
         self.init_weights()
 
     def forward(
