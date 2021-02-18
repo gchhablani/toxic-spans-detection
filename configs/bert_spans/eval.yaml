@@ -2,7 +2,7 @@ model_name: autospans
 results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_spans"
 dataset:
   name: toxic_spans_spans
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-4500
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-4000
   train_files:
     train: ./data/clean_train.csv
     validation: ./data/clean_trial.csv
