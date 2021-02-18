@@ -1,5 +1,5 @@
 name: toxic_spans_spans
-model_checkpoint_name: roberta-large-uncased
+model_checkpoint_name: roberta-large
 train_files:
   train: ./data/clean_train.csv
   validation: ./data/clean_trial.csv
