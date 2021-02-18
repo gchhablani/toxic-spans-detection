@@ -115,7 +115,7 @@ model_class = configmapper.get_object("models", eval_config.model_name)
 model = model_class.from_pretrained(**eval_config.pretrained_args)
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 
-if "tokenspans" in eval_config.model_name:
+if "token_spans" in eval_config.model_name:
     data_collator = default_data_collator
 
 elif "token" in eval_config.model_name:
@@ -133,53 +133,58 @@ else:
 if not os.path.exists(eval_config.save_dir):
     os.makedirs(eval_config.save_dir)
 
-if "tokenspans" in eval_config.model_name:
-    intermediate_eval = untokenized_train_dataset["validation"].map(
-        dataset.create_test_features,
-        batched=True,
-        remove_columns=untokenized_train_dataset["validation"].column_names,
-    )
-    tokenized_eval = intermediate_eval.map(
-        dataset.prepare_test_features,
-        batched=True,
-        remove_columns=intermediate_eval.column_names,
-    )
+if "token_spans" in eval_config.model_name:
 
-    validation_predictions = predict_tokens_spans(
-        model, tokenized_eval, intermediate_eval, tokenizer
-    )
+    if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
+        with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
+            best_threshold = float(f.read().split("\n")[0])
+    else:
+        intermediate_eval = untokenized_train_dataset["validation"].map(
+            dataset.create_test_features,
+            batched=True,
+            remove_columns=untokenized_train_dataset["validation"].column_names,
+        )
+        tokenized_eval = intermediate_eval.map(
+            dataset.prepare_test_features,
+            batched=True,
+            remove_columns=intermediate_eval.column_names,
+        )
 
-    val_original = untokenized_train_dataset["validation"]
-    best_threshold = -1
-    best_macro_f1 = -1
-    thresholds = np.linspace(0, 1, 100)
-    for threshold in tqdm(thresholds):
-        macro_f1 = 0
-        for row_number in range(len(val_original)):
-            row = val_original[row_number]
-            ground_spans = eval(row["spans"])
-            predicted_spans = validation_predictions[str(row_number)]
-            predicted_spans = [
-                span
-                for span in predicted_spans
-                if torch.sigmoid(torch.tensor(span["score"])) > threshold
-            ]
+        validation_predictions = predict_tokens_spans(
+            model, tokenized_eval, intermediate_eval, tokenizer
+        )
 
-            final_predicted_spans = []
-            for span in predicted_spans:
-                # print(span['start'])
-                if span["start"] is not None and span["end"] is not None:
-                    final_predicted_spans += list(range(span["start"], span["end"]))
+        val_original = untokenized_train_dataset["validation"]
+        best_threshold = -1
+        best_macro_f1 = -1
+        thresholds = np.linspace(0, 1, 100)
+        for threshold in tqdm(thresholds):
+            macro_f1 = 0
+            for row_number in range(len(val_original)):
+                row = val_original[row_number]
+                ground_spans = eval(row["spans"])
+                predicted_spans = validation_predictions[str(row_number)]
+                predicted_spans = [
+                    span
+                    for span in predicted_spans
+                    if torch.sigmoid(torch.tensor(span["score"])) > threshold
+                ]
 
-            final_predicted_spans = sorted(final_predicted_spans)
-            macro_f1 += f1(final_predicted_spans, ground_spans)
-        avg = macro_f1 / len(val_original)
-        if avg > best_macro_f1:
-            best_macro_f1 = avg
-            best_threshold = threshold
-    with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
-        f.write(str(best_threshold) + "\n")
-        f.write(str(best_macro_f1))
+                final_predicted_spans = []
+                for span in predicted_spans:
+                    # print(span['start'])
+                    if span["start"] is not None and span["end"] is not None:
+                        final_predicted_spans += list(range(span["start"], span["end"]))
+
+                final_predicted_spans = sorted(final_predicted_spans)
+                macro_f1 += f1(final_predicted_spans, ground_spans)
+            avg = macro_f1 / len(val_original)
+            if avg > best_macro_f1:
+                best_macro_f1 = avg
+                best_threshold = threshold
+        with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
+            f.write(str(best_threshold) + "\n")
+            f.write(str(best_macro_f1))
 
     topk = eval_config.topk
 
@@ -194,7 +199,7 @@ if "tokenspans" in eval_config.model_name:
             tokenized_test = intermediate_test.map(
                 dataset.prepare_test_features,
                 batched=True,
-                remove_columns=intermediate_eval.column_names,
+                remove_columns=intermediate_test.column_names,
             )
 
             test_predictions = predict_tokens_spans(
@@ -206,13 +211,13 @@ if "tokenspans" in eval_config.model_name:
                 os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
             ) as f:
                 for row_number in range(len(test_original)):
-                    row = val_original[row_number]
+                    row = test_original[row_number]
                     ground_spans = eval(row["spans"])
                     predicted_spans = test_predictions[str(row_number)]
                     predicted_spans = [
                         span
                         for span in predicted_spans
-                        if torch.sigmoid(torch.tensor(span["score"])) > threshold
+                        if torch.sigmoid(torch.tensor(span["score"])) > best_threshold
                     ]
 
                     final_predicted_spans = []
@@ -244,7 +249,7 @@ if "tokenspans" in eval_config.model_name:
             tokenized_test = intermediate_test.map(
                 dataset.prepare_test_features,
                 batched=True,
-                remove_columns=intermediate_eval.column_names,
+                remove_columns=intermediate_test.column_names,
             )
 
             test_predictions = predict_tokens_spans(
@@ -256,13 +261,13 @@ if "tokenspans" in eval_config.model_name:
                 os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
             ) as f:
                 for row_number in range(len(test_original)):
-                    row = val_original[row_number]
+                    row = test_original[row_number]
                     ground_spans = eval(row["spans"])
                     predicted_spans = test_predictions[str(row_number)]
                     predicted_spans = [
                         span
                         for span in predicted_spans
-                        if torch.sigmoid(torch.tensor(span["score"])) > threshold
+                        if torch.sigmoid(torch.tensor(span["score"])) > best_threshold
                     ]
 
                     final_predicted_spans = []
