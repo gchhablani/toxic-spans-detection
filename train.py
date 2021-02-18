@@ -123,12 +123,11 @@ else:
     model = model_class.from_pretrained(**train_config.pretrained_args)
 
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
-if "token" in train_config.model_name:
+if not "spans" in train_config.model_name:
     validation_spans = untokenized_train_dataset["validation"]["spans"]
     validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
     data_collator = DataCollatorForTokenClassification(tokenizer)
     compute_metrics = compute_metrics_token
-
 
 else:
     data_collator = default_data_collator
