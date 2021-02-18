@@ -381,7 +381,7 @@ else:
     for threshold in thresholds:
         macro_f1 = 0
         for row_number in range(len(val_original)):
-            row = val_original.iloc[row_number]
+            row = val_original[row_number]
             ground_spans = eval(row["spans"])
             predicted_spans = all_predicted_spans[row_number]
             predicted_spans = [
@@ -394,7 +394,7 @@ else:
             for span in predicted_spans:
                 final_predicted_spans += list(range(span["start"], span["end"]))
 
-            final_predicted_spans = sorted(spans)
+            final_predicted_spans = sorted(final_predicted_spans)
             macro_f1 += f1(final_predicted_spans, ground_spans)
         avg = macro_f1 / len(val_original)
         if avg > best_macro_f1:
@@ -442,7 +442,7 @@ else:
                     for span in predicted_spans:
                         final_predicted_spans += list(range(span["start"], span["end"]))
 
-                    final_predicted_spans = sorted(spans)
+                    final_predicted_spans = sorted(final_predicted_spans)
                     if row_number != len(temp_test_dataset) - 1:
                         f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
                     else:
@@ -489,7 +489,7 @@ else:
                     for span in predicted_spans:
                         final_predicted_spans += list(range(span["start"], span["end"]))
 
-                    final_predicted_spans = sorted(spans)
+                    final_predicted_spans = sorted(final_predicted_spans)
                     if row_number != len(temp_test_dataset) - 1:
                         f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
                     else:
