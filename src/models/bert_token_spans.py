@@ -1,17 +1,15 @@
 import torch.nn as nn
 import torch
 from torch.nn import CrossEntropyLoss
-from transformers import AutoModel, PreTrainedModel
+from transformers import BertPreTrainedModel, BertModel
 from src.utils.mapper import configmapper
 
 
-@configmapper.map("models", "autotokenspans")
-class AutoModelForTokenAndSpans(PreTrainedModel):
-    def __init__(self, transformers_config, num_token_labels=2, num_qa_labels=2):
+@configmapper.map("models", "bert_token_spans")
+class BertModelForTokenAndSpans(BertPreTrainedModel):
+    def __init__(self, config, num_token_labels=2, num_qa_labels=2):
         super(AutoModelForTokenAndSpans, self).__init__(transformers_config)
-        self.model = AutoModel.from_pretrained(
-            transformers_config, add_pooling_layer=False
-        )
+        self.bert = BertModel(config)
         self.num_token_labels = num_token_labels
         self.num_qa_labels = num_qa_labels
 
@@ -35,7 +33,7 @@ class AutoModelForTokenAndSpans(PreTrainedModel):
         output_hidden_states=None,
     ):
 
-        outputs = self.model(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,

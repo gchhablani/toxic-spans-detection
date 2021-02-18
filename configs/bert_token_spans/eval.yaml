@@ -1,4 +1,4 @@
-model_name: autospans
+model_name: bert_token_spans
 results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_token_spans"
 dataset:
   name: toxic_spans_tokens_spans

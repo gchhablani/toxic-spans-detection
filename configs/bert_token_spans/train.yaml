@@ -1,4 +1,4 @@
-model_name: autotokenspans
+model_name: bert_token_spans
 pretrained_args:
   pretrained_model_name_or_path: bert-large-uncased
 
