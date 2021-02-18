@@ -449,7 +449,7 @@ else:
                         f.write(f"{row_number}\t{str(final_predicted_spans)}")
                     f1_scores.append(f1(final_predicted_spans, eval(row["spans"])))
             with open(
-                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt")
+                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt", "w")
             ) as f:
                 f.write(str(np.mean(f1_scores)))
 
