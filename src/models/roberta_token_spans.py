@@ -10,7 +10,7 @@ from src.utils.mapper import configmapper
 class RobertaModelForTokenAndSpans(RobertaPreTrainedModel):
     def __init__(self, config, num_token_labels=2, num_qa_labels=2):
         super(RobertaModelForTokenAndSpans, self).__init__(config)
-        self.bert = RobertaModel(config)
+        self.roberta = RobertaModel(config)
         self.num_token_labels = num_token_labels
         self.num_qa_labels = num_qa_labels
 
@@ -34,7 +34,7 @@ class RobertaModelForTokenAndSpans(RobertaPreTrainedModel):
         output_hidden_states=None,
     ):
 
-        outputs = self.bert(
+        outputs = self.roberta(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,

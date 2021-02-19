@@ -9,7 +9,7 @@ from src.utils.mapper import configmapper
 class RobertaForMultiSpans(RobertaPreTrainedModel):
     def __init__(self, config):
         super(RobertaForMultiSpans, self).__init__(config)
-        self.bert = RobertaModel(config)
+        self.roberta = RobertaModel(config)
         self.num_labels = config.num_labels
 
         # TODO check with Google if it's normal there is no dropout on the token classifier of SQuAD in the TF version
@@ -30,7 +30,7 @@ class RobertaForMultiSpans(RobertaPreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
     ):
-        outputs = self.bert(
+        outputs = self.roberta(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
