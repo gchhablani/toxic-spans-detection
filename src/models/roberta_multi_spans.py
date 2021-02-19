@@ -5,7 +5,7 @@ from transformers.models.roberta.modeling_roberta import RobertaPreTrainedModel
 from src.utils.mapper import configmapper
 
 
-@configmapper("models", "roberta_multi_spans")
+@configmapper.map("models", "roberta_multi_spans")
 class RobertaForMultiSpans(RobertaPreTrainedModel):
     def __init__(self, config):
         super(RobertaForMultiSpans, self).__init__(config)

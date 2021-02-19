@@ -4,7 +4,7 @@ from transformers import BertModel, BertPreTrainedModel
 from src.utils.mapper import configmapper
 
 
-@configmapper("models", "bert_multi_spans")
+@configmapper.map("models", "bert_multi_spans")
 class BertForMultiSpans(BertPreTrainedModel):
     def __init__(self, config):
         super(BertForMultiSpans, self).__init__(config)
