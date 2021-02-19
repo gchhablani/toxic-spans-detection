@@ -132,7 +132,10 @@ model_class = configmapper.get_object("models", eval_config.model_name)
 model = model_class.from_pretrained(**eval_config.pretrained_args)
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 
-if "token_spans" in eval_config.model_name or "multi" in eval_config.model_name:
+if "crf" in eval_config.model_name:
+    data_collator = DataCollatorForTokenClassification(tokenizer)
+    model = model.cuda()
+elif "token_spans" in eval_config.model_name or "multi" in eval_config.model_name:
     data_collator = default_data_collator
 
 elif "token" in eval_config.model_name:
@@ -149,7 +152,107 @@ else:
 
 if not os.path.exists(eval_config.save_dir):
     os.makedirs(eval_config.save_dir)
-if "multi" in eval_config.model_name:
+if "crf" in eval_config.model_name:
+    if eval_config.with_ground:
+        for key in tokenized_train_dataset.keys():
+            temp_dataset = tokenized_train_dataset[key]
+            temp_dataset.set_format(
+                "torch",
+                columns=["input_ids", "attention_mask", "labels", "prediction_mask"],
+                output_all_columns=True,
+                device="cuda",
+            )
+            predictions = []
+
+            input_ids = temp_dataset[key]["input_ids"]
+            attention_mask = temp_dataset[key]["attention_mask"]
+            prediction_mask = temp_dataset[key]["prediction_mask"]
+            for i in range(len(input_ids)):
+                # print(prediction_mask[i])
+                predicts = model(
+                    input_ids=input_ids[i].reshape(1, -1),
+                    attention_mask=attention_mask[i].reshape(1, -1),
+                    prediction_mask=prediction_mask[i].reshape(1, -1),
+                )[1]
+                predictions += predicts
+            offset_mapping = temp_dataset[key]["offset_mapping"]
+            predicted_spans = []
+            for i, preds in enumerate(predictions):
+                predicted_spans.append([])
+                k = 0
+                for j, offsets in enumerate(offset_mapping[i]):
+                    if prediction_mask[i][j] == 0:
+                        break
+                    else:
+                        if k >= len(preds):
+                            break
+                        if preds[k] == 1:
+                            predicted_spans[-1] += list(
+                                range(offsets[0].cpu(), offsets[1].cpu())
+                            )
+                        k += 1
+
+            spans = [eval(temp_dataset[i]["spans"]) for i in range(len(temp_dataset))]
+
+            avg_f1_score = np.mean(
+                [f1(preds, ground) for preds, ground in zip(predicted_spans, spans)]
+            )
+            with open(f"spans-pred-{key}.txt", "w") as f:
+                for i, pred in enumerate(predicted_spans):
+                    if i == len(preds) - 1:
+                        f.write(f"{i}\t{str(pred)}")
+                    else:
+                        f.write(f"{i}\t{str(pred)}\n")
+            with open(
+                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
+            ) as f:
+                f.write(str(avg_f1_score))
+    else:
+        for key in tokenized_test_dataset.keys():
+            temp_dataset = tokenized_test_dataset[key]
+            temp_dataset.set_format(
+                "torch",
+                columns=["input_ids", "attention_mask", "labels", "prediction_mask"],
+                output_all_columns=True,
+                device="cuda",
+            )
+            predictions = []
+
+            input_ids = temp_dataset[key]["input_ids"]
+            attention_mask = temp_dataset[key]["attention_mask"]
+            prediction_mask = temp_dataset[key]["prediction_mask"]
+            for i in range(len(input_ids)):
+                # print(prediction_mask[i])
+                predicts = model(
+                    input_ids=input_ids[i].reshape(1, -1),
+                    attention_mask=attention_mask[i].reshape(1, -1),
+                    prediction_mask=prediction_mask[i].reshape(1, -1),
+                )[1]
+                predictions += predicts
+            offset_mapping = temp_dataset[key]["offset_mapping"]
+            predicted_spans = []
+            for i, preds in enumerate(predictions):
+                predicted_spans.append([])
+                k = 0
+                for j, offsets in enumerate(offset_mapping[i]):
+                    if prediction_mask[i][j] == 0:
+                        break
+                    else:
+                        if k >= len(preds):
+                            break
+                        if preds[k] == 1:
+                            predicted_spans[-1] += list(
+                                range(offsets[0].cpu(), offsets[1].cpu())
+                            )
+                        k += 1
+            with open(f"spans-pred-{key}.txt", "w") as f:
+                for i, pred in enumerate(predicted_spans):
+                    if i == len(preds) - 1:
+                        f.write(f"{i}\t{str(pred)}")
+                    else:
+                        f.write(f"{i}\t{str(pred)}\n")
+
+elif "multi" in eval_config.model_name:
     if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
         with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
             best_threshold = float(f.read().split("\n")[0])
