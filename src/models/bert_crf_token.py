@@ -1,8 +1,10 @@
 import torch
 from transformers import BertForTokenClassification
-from crf import CRF
+from torchcrf import CRF
+from src.utils.mapper import configmapper
 
 
+@configmapper.map("models", "bert_crf_token")
 class BertLSTMCRF(BertForTokenClassification):
     def __init__(self, config, lstm_hidden_size, lstm_layers):
         super().__init__(config)

@@ -1,7 +1,9 @@
 model_name: bert_crf_token
 pretrained_args:
   pretrained_model_name_or_path: bert-large-uncased
-  num_labels: 2
+  num_labels: 3
+  lstm_hidden_size: 128
+  lstm_layers: 1
 
 results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_crf_token"
 
