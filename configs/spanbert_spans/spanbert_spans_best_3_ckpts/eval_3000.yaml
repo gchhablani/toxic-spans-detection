@@ -1,7 +1,7 @@
-model_name: autotoken
+model_name: autospans
 results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_spans"
 dataset:
-  name: toxic_spans_tokens
+  name: toxic_spans_spans
   model_checkpoint_name: ${results_dir}/ckpts/checkpoint-3000
   train_files:
     train: ./data/clean_train.csv
@@ -11,15 +11,15 @@ dataset:
     original_test: ./data/tsd_test_spans.csv
   eval_files:
     test: ./data/tsd_test.csv
-  label_cls: true
-  cls_threshold: 0.3 # can be tuned
-  token_threshold: 0.0 # can be tuned
   tokenizer_params:
-    truncation: true
-    max_length: 384 # originally we used 200
-    padding: max_length
+    truncation: "only_second"
+    max_length: 384
+    stride: 128
+    return_overflowing_tokens: true
     return_offsets_mapping: true
+    padding: max_length
 pretrained_args:
   pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
 with_ground: true
+topk: 25
 save_dir: ${results_dir}/spanbert_spans_best_3_ckpts/preds-3000/
