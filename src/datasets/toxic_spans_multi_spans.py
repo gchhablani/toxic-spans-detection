@@ -150,16 +150,12 @@ class ToxicSpansMultiSpansDataset:
 
                     # Start token index of the current span in the text.
                     token_start_index = 0
-                    while sequence_ids[token_start_index] != (
-                        1 if self.pad_on_right else 0
-                    ):
+                    while sequence_ids[token_start_index] != (1 if pad_on_right else 0):
                         token_start_index += 1
 
                     # End token index of the current span in the text.
                     token_end_index = len(input_ids) - 1
-                    while sequence_ids[token_end_index] != (
-                        1 if self.pad_on_right else 0
-                    ):
+                    while sequence_ids[token_end_index] != (1 if pad_on_right else 0):
                         token_end_index -= 1
 
                     # Detect if the answer is out of the span (in which case we continue).

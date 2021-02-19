@@ -134,7 +134,13 @@ else:
     compute_metrics = None
 
 ## Need to place data_collator
-args = TrainingArguments(**train_config.args)
+if "multi" in train_config.model_name:
+    args = TrainingArguments(
+        label_names=["start_positions", "end_positions"], **train_config.args
+    )
+else:
+    args = TrainingArguments(**train_config.args)
+
 if not os.path.exists(train_config.args.output_dir):
     os.makedirs(train_config.args.output_dir)
 checkpoints = sorted(
