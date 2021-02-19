@@ -256,7 +256,7 @@ class ToxicSpansTokensSpansDataset:
             # One example can give several spans,
             # this is the index of the example containing this span of text.
             sample_index = sample_mapping[i]
-            tokenized_examples["example_id"].append(examples["id"][sample_index])
+            tokenized_examples["example_id"].append(str(examples["id"][sample_index]))
 
             # Set to None the offset_mapping that are not part
             # of the context so it's easy to determine if a token

@@ -19,11 +19,13 @@ class ToxicSpansSpansDataset:
         self.intermediate_dataset = self.dataset.map(
             self.create_train_features,
             batched=True,
+            batch_size=1000000,  ##Unusually Large Batch Size ## Needed For Correct ID mapping
             remove_columns=self.dataset["train"].column_names,
         )
         self.intermediate_test_dataset = self.test_dataset.map(
             self.create_test_features,
             batched=True,
+            batch_size=1000000,  ##Unusually Large Batch Size ## Needed For Correct ID mapping
             remove_columns=self.test_dataset["test"].column_names,
         )
 
@@ -217,7 +219,7 @@ class ToxicSpansSpansDataset:
             # One example can give several spans,
             # this is the index of the example containing this span of text.
             sample_index = sample_mapping[i]
-            tokenized_examples["example_id"].append(examples["id"][sample_index])
+            tokenized_examples["example_id"].append(str(examples["id"][sample_index]))
 
             # Set to None the offset_mapping that are not part
             # of the context so it's easy to determine if a token
