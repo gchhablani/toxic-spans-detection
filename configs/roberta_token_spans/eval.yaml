@@ -16,7 +16,7 @@ dataset:
   token_threshold: 0.0 # can be tuned
   tokenizer_params:
     truncation: "only_second"
-    max_length: 384
+    max_length: 512 # Need to change to prevent overflows
     stride: 128
     return_overflowing_tokens: true
     return_offsets_mapping: true
