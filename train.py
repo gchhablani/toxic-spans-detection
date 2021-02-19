@@ -125,6 +125,7 @@ else:
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 if "crf" in train_config.model_name:
     data_collator = DataCollatorForTokenClassification(tokenizer)
+    compute_metrics = None
 elif not "spans" in train_config.model_name:
     validation_spans = untokenized_train_dataset["validation"]["spans"]
     validation_offsets_mapping = tokenized_train_dataset["validation"]["offset_mapping"]
