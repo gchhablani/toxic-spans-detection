@@ -1,5 +1,5 @@
 name: toxic_spans_crf_tokens
-model_checkpoint_name: robert-large
+model_checkpoint_name: roberta-large
 train_files:
   train: ./data/clean_train.csv
   validation: ./data/clean_trial.csv
