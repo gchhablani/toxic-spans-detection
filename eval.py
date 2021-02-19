@@ -132,7 +132,7 @@ model_class = configmapper.get_object("models", eval_config.model_name)
 model = model_class.from_pretrained(**eval_config.pretrained_args)
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 
-if "token_spans" in eval_config.model_name:
+if "token_spans" in eval_config.model_name or "multi" in eval_config.model_name:
     data_collator = default_data_collator
 
 elif "token" in eval_config.model_name:
@@ -157,6 +157,7 @@ if "multi" in eval_config.model_name:
         intermediate_eval = untokenized_train_dataset["validation"].map(
             dataset.create_test_features,
             batched=True,
+            batch_size=len(untokenized_train_dataset["validation"]),
             remove_columns=untokenized_train_dataset["validation"].column_names,
         )
         tokenized_eval = intermediate_eval.map(
@@ -209,6 +210,7 @@ if "multi" in eval_config.model_name:
             intermediate_test = untokenized_train_dataset[key].map(
                 dataset.create_test_features,
                 batched=True,
+                batch_size=len(untokenized_train_dataset[key]),
                 remove_columns=untokenized_train_dataset[key].column_names,
             )
             tokenized_test = intermediate_test.map(
@@ -259,6 +261,7 @@ if "multi" in eval_config.model_name:
             intermediate_test = untokenized_test_dataset[key].map(
                 dataset.create_test_features,
                 batched=True,
+                batch_size=len(untokenized_test_dataset[key]),
                 remove_columns=untokenized_test_dataset[key].column_names,
             )
             tokenized_test = intermediate_test.map(
@@ -309,6 +312,7 @@ elif "token_spans" in eval_config.model_name:
         intermediate_eval = untokenized_train_dataset["validation"].map(
             dataset.create_test_features,
             batched=True,
+            batch_size=len(untokenized_train_dataset["validation"]),
             remove_columns=untokenized_train_dataset["validation"].column_names,
         )
         tokenized_eval = intermediate_eval.map(
@@ -361,6 +365,7 @@ elif "token_spans" in eval_config.model_name:
             intermediate_test = untokenized_train_dataset[key].map(
                 dataset.create_test_features,
                 batched=True,
+                batch_size=len(untokenized_train_dataset[key]),
                 remove_columns=untokenized_train_dataset[key].column_names,
             )
             tokenized_test = intermediate_test.map(
@@ -411,6 +416,7 @@ elif "token_spans" in eval_config.model_name:
             intermediate_test = untokenized_test_dataset[key].map(
                 dataset.create_test_features,
                 batched=True,
+                batch_size=len(untokenized_test_dataset[key]),
                 remove_columns=untokenized_test_dataset[key].column_names,
             )
             tokenized_test = intermediate_test.map(
