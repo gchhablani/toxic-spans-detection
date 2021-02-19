@@ -71,10 +71,6 @@ class ToxicSpansCRFTokenDataset:
                 elif offsets[0] == offsets[1] and offsets[0] == 0:
                     labels[-1].append(2)  ## DUMMY
 
-                elif self.tokenizer.convert_ids_to_tokens(
-                    tokenized_inputs["input_ids"][i][j]
-                ).startswith("##"):
-                    labels[-1].append(2)  ## DUMMY
                 else:
                     toxic_offsets = [x in spans for x in range(offsets[0], offsets[1])]
                     ## If any part of the the token is in span, mark it as Toxic
