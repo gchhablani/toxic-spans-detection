@@ -16,7 +16,9 @@ class ToxicSpansTokenDataset:
         self.tokenized_inputs = self.dataset.map(
             self.tokenize_and_align_labels_for_train, batched=True
         )
-        self.test_tokenized_inputs = self.dataset.map(self.tokenize_for_test)
+        self.test_tokenized_inputs = self.dataset.map(
+            self.tokenize_for_test, batched=True
+        )
 
     def tokenize_and_align_labels_for_train(self, examples):
         tokenized_inputs = self.tokenizer(
