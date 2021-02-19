@@ -1,6 +1,6 @@
 model_name: roberta_token_spans
 pretrained_args:
-  pretrained_model_name_or_path: roberta-large-uncased
+  pretrained_model_name_or_path: roberta-large
 
 results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_token_spans"
 
