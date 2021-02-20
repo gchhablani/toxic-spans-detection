@@ -21,5 +21,8 @@ dataset:
     return_offsets_mapping: true
 pretrained_args:
   pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
+  num_labels: 3
+  lstm_hidden_size: 128
+  lstm_layers: 1
 with_ground: true
 save_dir: ${results_dir}/preds/
