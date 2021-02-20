@@ -164,9 +164,9 @@ if "crf" in eval_config.model_name:
             )
             predictions = []
 
-            input_ids = temp_dataset[key]["input_ids"]
-            attention_mask = temp_dataset[key]["attention_mask"]
-            prediction_mask = temp_dataset[key]["prediction_mask"]
+            input_ids = temp_dataset["input_ids"]
+            attention_mask = temp_dataset["attention_mask"]
+            prediction_mask = temp_dataset["prediction_mask"]
             for i in range(len(input_ids)):
                 # print(prediction_mask[i])
                 predicts = model(
@@ -175,7 +175,7 @@ if "crf" in eval_config.model_name:
                     prediction_mask=prediction_mask[i].reshape(1, -1),
                 )[1]
                 predictions += predicts
-            offset_mapping = temp_dataset[key]["offset_mapping"]
+            offset_mapping = temp_dataset["offset_mapping"]
             predicted_spans = []
             for i, preds in enumerate(predictions):
                 predicted_spans.append([])
@@ -218,9 +218,9 @@ if "crf" in eval_config.model_name:
             )
             predictions = []
 
-            input_ids = temp_dataset[key]["input_ids"]
-            attention_mask = temp_dataset[key]["attention_mask"]
-            prediction_mask = temp_dataset[key]["prediction_mask"]
+            input_ids = temp_dataset["input_ids"]
+            attention_mask = temp_dataset["attention_mask"]
+            prediction_mask = temp_dataset["prediction_mask"]
             for i in range(len(input_ids)):
                 # print(prediction_mask[i])
                 predicts = model(
@@ -229,7 +229,7 @@ if "crf" in eval_config.model_name:
                     prediction_mask=prediction_mask[i].reshape(1, -1),
                 )[1]
                 predictions += predicts
-            offset_mapping = temp_dataset[key]["offset_mapping"]
+            offset_mapping = temp_dataset["offset_mapping"]
             predicted_spans = []
             for i, preds in enumerate(predictions):
                 predicted_spans.append([])
