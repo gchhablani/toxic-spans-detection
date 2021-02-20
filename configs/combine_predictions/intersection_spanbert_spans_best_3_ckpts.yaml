@@ -1,6 +1,6 @@
 type: intersection
 files:
-  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/spanbert_spans_best_3_ckpts/preds-3000/spans-pred-original_test.txt"
-  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/spanbert_spans_best_3_ckpts/preds-3500/spans-pred-original_test.txt"
-  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/spanbert_spans_best_3_ckpts/preds-4000/spans-pred-original_test.txt"
-path: "/content/drive/My Drive/ToxicSpans/results/combine_predictions/spans-pred-original_test-intersection_spanbert_spans_best_3_ckpts.txt"
+  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/spanbert_spans_best_3_ckpts/preds-3000/spans-pred_original_test.txt"
+  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/spanbert_spans_best_3_ckpts/preds-3500/spans-pred_original_test.txt"
+  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/spanbert_spans_best_3_ckpts/preds-4000/spans-pred_original_test.txt"
+path: "/content/drive/My Drive/ToxicSpans/results/combine_predictions/spans-pred_original_test-intersection_spanbert_spans_best_3_ckpts.txt"
