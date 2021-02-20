@@ -2,7 +2,7 @@ model_name: bert_crf_token
 results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_crf_token"
 dataset:
   name: toxic_spans_crf_tokens
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-3500
   train_files:
     train: ./data/clean_train.csv
     validation: ./data/clean_trial.csv
