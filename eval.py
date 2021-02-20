@@ -187,9 +187,7 @@ if "crf" in eval_config.model_name:
                         if k >= len(preds):
                             break
                         if preds[k] == 1:
-                            predicted_spans[-1] += list(
-                                range(offsets[0].cpu(), offsets[1].cpu())
-                            )
+                            predicted_spans[-1] += list(range(offsets[0], offsets[1]))
                         k += 1
 
             spans = [eval(temp_dataset[i]["spans"]) for i in range(len(temp_dataset))]
@@ -242,7 +240,7 @@ if "crf" in eval_config.model_name:
                             break
                         if preds[k] == 1:
                             predicted_spans[-1] += list(
-                                range(offsets[0].cpu(), offsets[1].cpu())
+                                range(offsets[0], offsets[1])
                             )
                         k += 1
             with open(f"spans-pred-{key}.txt", "w") as f:
