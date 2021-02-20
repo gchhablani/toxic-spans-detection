@@ -10,6 +10,7 @@ def binary_intersection(lst1, lst2):
 
 def binary_union(lst1, lst2):
     lst3 = list(set(lst1 + lst2))
+    return lst3
 
 
 def combine(files, type="union"):
