@@ -1,7 +1,7 @@
-""" Function to print test_predictions"""
+""" Script to print test_predictions"""
 test_file = "./data/tsd_test.csv"
-predictions_file = "./spans-predroberta3ckpt.txt"
-output_file = "./output_roberta3ckpt.txt"
+predictions_file = "./spans-pred_spanbert_qa_gs.txt"
+output_file = "./output_spans-pred_spanbert_qa_gs.txt"
 
 from evaluation.fix_spans import _contiguous_ranges
 from baselines.spacy_tagging import read_datafile
@@ -11,9 +11,13 @@ import numpy as np
 
 texts = read_datafile(test_file, test=True)
 with open(predictions_file, "r") as f:
-    all_preds = f.read()
-preds = [eval(pred.split("\t")[1]) for pred in all_preds.split("\n")]
+    all_preds = f.readlines()
 
+# for i in range(len(all_preds)):
+#     print(eval(all_preds[i].split("\t")[1]))
+preds = [sorted(np.unique(eval(pred.split("\t")[1]))) for pred in all_preds]
+
+# print(len(preds))
 
 # ## Refining and Cleaning for Spans Pred Multi Thresh 0.5
 # import string
@@ -89,12 +93,12 @@ preds = [eval(pred.split("\t")[1]) for pred in all_preds.split("\n")]
 # preds = final_new_preds
 
 
-with open("./spans-pred_spanbert_qatoken_cleaned.txt", "w") as f:
-    for i in range(len(preds)):
-        if i != len(preds) - 1:
-            f.write(f"{i}\t{str(list(preds[i]))}\n")
-        else:
-            f.write(f"{i}\t{str(list(preds[i]))}")
+# with open("./spans-pred_spanbert_qa_gs_cleaned.txt", "w") as f:
+#     for i in range(len(preds)):
+#         if i != len(preds) - 1:
+#             f.write(f"{i}\t{str(list(preds[i]))}\n")
+#         else:
+#             f.write(f"{i}\t{str(list(preds[i]))}")
 
 # predictions = pd.read_csv("output (27).csv")
 # preds = [eval(pred) for pred in predictions["spans"].values]
