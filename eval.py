@@ -207,7 +207,9 @@ if "crf" in eval_config.model_name:
             avg_f1_score = np.mean(
                 [f1(preds, ground) for preds, ground in zip(predicted_spans, spans)]
             )
-            with open(f"spans-pred-{key}.txt", "w") as f:
+            with open(
+                os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+            ) as f:
                 for i, pred in enumerate(predicted_spans):
                     if i == len(preds) - 1:
                         f.write(f"{i}\t{str(pred)}")
@@ -253,7 +255,9 @@ if "crf" in eval_config.model_name:
                         if preds[k] == 1:
                             predicted_spans[-1] += list(range(offsets[0], offsets[1]))
                         k += 1
-            with open(f"spans-pred-{key}.txt", "w") as f:
+            with open(
+                os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+            ) as f:
                 for i, pred in enumerate(predicted_spans):
                     if i == len(preds) - 1:
                         f.write(f"{i}\t{str(pred)}")
@@ -412,7 +416,6 @@ elif "multi" in eval_config.model_name:
                         f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
                     else:
                         f.write(f"{row_number}\t{str(final_predicted_spans)}")
-
 
 elif "token_spans" in eval_config.model_name:
 
@@ -813,7 +816,6 @@ elif "token_spans" in eval_config.model_name:
                         else:
                             f.write(f"{row_number}\t{str(final_predicted_spans)}")
 
-
 elif "token" in eval_config.model_name:
     trainer = Trainer(
         model=model,
@@ -888,6 +890,7 @@ elif "token" in eval_config.model_name:
                         f.write(f"{i}\t{str(predicted_spans)}")
                     else:
                         f.write(f"{i}\t{str(predicted_spans)}\n")
+
 else:
     # QA Eval
     val_original = untokenized_train_dataset["validation"]
