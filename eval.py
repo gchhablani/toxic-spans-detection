@@ -98,6 +98,9 @@ def get_token_spans_separate_logits(model, dataset, type="spans"):
     )
     raw_predictions = trainer.predict(dataset)
     start_logits, end_logits, token_logits = raw_predictions.predictions
+    dataset.set_format(
+        type=dataset.format["type"], columns=list(dataset.features.keys())
+    )
     if type == "spans":
         return start_logits, end_logits
     else:
