@@ -92,6 +92,18 @@ def predict_tokens_spans(model, dataset, examples, tokenizer):
     return final_predictions
 
 
+def get_token_spans_separate_logits(model, dataset, type="spans"):
+    trainer = Trainer(
+        model,
+    )
+    raw_predictions = trainer.predict(dataset)
+    start_logits, end_logits, token_logits = raw_predictions.predictions
+    if type == "spans":
+        return start_logits, end_logits
+    else:
+        return token_logits
+
+
 def predict_multi_spans(model, dataset, examples, tokenizer):
     trainer = Trainer(
         model,
@@ -239,9 +251,7 @@ if "crf" in eval_config.model_name:
                         if k >= len(preds):
                             break
                         if preds[k] == 1:
-                            predicted_spans[-1] += list(
-                                range(offsets[0], offsets[1])
-                            )
+                            predicted_spans[-1] += list(range(offsets[0], offsets[1]))
                         k += 1
             with open(f"spans-pred-{key}.txt", "w") as f:
                 for i, pred in enumerate(predicted_spans):
@@ -406,91 +416,42 @@ elif "multi" in eval_config.model_name:
 
 elif "token_spans" in eval_config.model_name:
 
-    if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
-        with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
-            best_threshold = float(f.read().split("\n")[0])
-    else:
-        intermediate_eval = untokenized_train_dataset["validation"].map(
-            dataset.create_test_features,
-            batched=True,
-            batch_size=len(untokenized_train_dataset["validation"]),
-            remove_columns=untokenized_train_dataset["validation"].column_names,
-        )
-        tokenized_eval = intermediate_eval.map(
-            dataset.prepare_test_features,
-            batched=True,
-            remove_columns=intermediate_eval.column_names,
-        )
+    if eval_config.style is None:
 
-        validation_predictions = predict_tokens_spans(
-            model, tokenized_eval, intermediate_eval, tokenizer
-        )
-
-        val_original = untokenized_train_dataset["validation"]
-        best_threshold = -1
-        best_macro_f1 = -1
-        thresholds = np.linspace(0, 1, 100)
-        for threshold in tqdm(thresholds):
-            macro_f1 = 0
-            for row_number in range(len(val_original)):
-                row = val_original[row_number]
-                ground_spans = eval(row["spans"])
-                predicted_spans = validation_predictions[str(row_number)]
-                predicted_spans = [
-                    span
-                    for span in predicted_spans
-                    if torch.sigmoid(torch.tensor(span["score"])) > threshold
-                ]
-
-                final_predicted_spans = []
-                for span in predicted_spans:
-                    # print(span['start'])
-                    if span["start"] is not None and span["end"] is not None:
-                        final_predicted_spans += list(range(span["start"], span["end"]))
-
-                final_predicted_spans = sorted(final_predicted_spans)
-                macro_f1 += f1(final_predicted_spans, ground_spans)
-            avg = macro_f1 / len(val_original)
-            if avg > best_macro_f1:
-                best_macro_f1 = avg
-                best_threshold = threshold
-        with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
-            f.write(str(best_threshold) + "\n")
-            f.write(str(best_macro_f1))
-
-    topk = eval_config.topk
-
-    if eval_config.with_ground:
-        for key in untokenized_train_dataset.keys():
-            f1_scores = []
-            intermediate_test = untokenized_train_dataset[key].map(
+        if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
+            with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
+                best_threshold = float(f.read().split("\n")[0])
+        else:
+            intermediate_eval = untokenized_train_dataset["validation"].map(
                 dataset.create_test_features,
                 batched=True,
-                batch_size=len(untokenized_train_dataset[key]),
-                remove_columns=untokenized_train_dataset[key].column_names,
+                batch_size=len(untokenized_train_dataset["validation"]),
+                remove_columns=untokenized_train_dataset["validation"].column_names,
             )
-            tokenized_test = intermediate_test.map(
+            tokenized_eval = intermediate_eval.map(
                 dataset.prepare_test_features,
                 batched=True,
-                remove_columns=intermediate_test.column_names,
+                remove_columns=intermediate_eval.column_names,
             )
 
-            test_predictions = predict_tokens_spans(
-                model, tokenized_test, intermediate_test, tokenizer
+            validation_predictions = predict_tokens_spans(
+                model, tokenized_eval, intermediate_eval, tokenizer
             )
 
-            test_original = untokenized_train_dataset[key]
-            with open(
-                os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
-            ) as f:
-                for row_number in range(len(test_original)):
-                    row = test_original[row_number]
+            val_original = untokenized_train_dataset["validation"]
+            best_threshold = -1
+            best_macro_f1 = -1
+            thresholds = np.linspace(0, 1, 100)
+            for threshold in tqdm(thresholds):
+                macro_f1 = 0
+                for row_number in range(len(val_original)):
+                    row = val_original[row_number]
                     ground_spans = eval(row["spans"])
-                    predicted_spans = test_predictions[str(row_number)]
+                    predicted_spans = validation_predictions[str(row_number)]
                     predicted_spans = [
                         span
                         for span in predicted_spans
-                        if torch.sigmoid(torch.tensor(span["score"])) > best_threshold
+                        if torch.sigmoid(torch.tensor(span["score"])) > threshold
                     ]
 
                     final_predicted_spans = []
@@ -502,46 +463,228 @@ elif "token_spans" in eval_config.model_name:
                             )
 
                     final_predicted_spans = sorted(final_predicted_spans)
-                    if row_number != len(test_original) - 1:
-                        f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
-                    else:
-                        f.write(f"{row_number}\t{str(final_predicted_spans)}")
-                    f1_scores.append(f1(final_predicted_spans, eval(row["spans"])))
-            with open(
-                os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
-            ) as f:
-                f.write(str(np.mean(f1_scores)))
+                    macro_f1 += f1(final_predicted_spans, ground_spans)
+                avg = macro_f1 / len(val_original)
+                if avg > best_macro_f1:
+                    best_macro_f1 = avg
+                    best_threshold = threshold
+            with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
+                f.write(str(best_threshold) + "\n")
+                f.write(str(best_macro_f1))
 
-    else:
-        for key in untokenized_test_dataset.keys():
-            intermediate_test = untokenized_test_dataset[key].map(
+        topk = eval_config.topk
+
+        if eval_config.with_ground:
+            for key in untokenized_train_dataset.keys():
+                f1_scores = []
+                intermediate_test = untokenized_train_dataset[key].map(
+                    dataset.create_test_features,
+                    batched=True,
+                    batch_size=len(untokenized_train_dataset[key]),
+                    remove_columns=untokenized_train_dataset[key].column_names,
+                )
+                tokenized_test = intermediate_test.map(
+                    dataset.prepare_test_features,
+                    batched=True,
+                    remove_columns=intermediate_test.column_names,
+                )
+
+                test_predictions = predict_tokens_spans(
+                    model, tokenized_test, intermediate_test, tokenizer
+                )
+
+                test_original = untokenized_train_dataset[key]
+                with open(
+                    os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+                ) as f:
+                    for row_number in range(len(test_original)):
+                        row = test_original[row_number]
+                        ground_spans = eval(row["spans"])
+                        predicted_spans = test_predictions[str(row_number)]
+                        predicted_spans = [
+                            span
+                            for span in predicted_spans
+                            if torch.sigmoid(torch.tensor(span["score"]))
+                            > best_threshold
+                        ]
+
+                        final_predicted_spans = []
+                        for span in predicted_spans:
+                            # print(span['start'])
+                            if span["start"] is not None and span["end"] is not None:
+                                final_predicted_spans += list(
+                                    range(span["start"], span["end"])
+                                )
+
+                        final_predicted_spans = sorted(final_predicted_spans)
+                        if row_number != len(test_original) - 1:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
+                        else:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}")
+                        f1_scores.append(f1(final_predicted_spans, eval(row["spans"])))
+                with open(
+                    os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
+                ) as f:
+                    f.write(str(np.mean(f1_scores)))
+
+        else:
+            for key in untokenized_test_dataset.keys():
+                intermediate_test = untokenized_test_dataset[key].map(
+                    dataset.create_test_features,
+                    batched=True,
+                    batch_size=len(untokenized_test_dataset[key]),
+                    remove_columns=untokenized_test_dataset[key].column_names,
+                )
+                tokenized_test = intermediate_test.map(
+                    dataset.prepare_test_features,
+                    batched=True,
+                    remove_columns=intermediate_test.column_names,
+                )
+
+                test_predictions = predict_tokens_spans(
+                    model, tokenized_test, intermediate_test, tokenizer
+                )
+
+                test_original = untokenized_test_dataset[key]
+                with open(
+                    os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+                ) as f:
+                    for row_number in range(len(test_original)):
+                        row = test_original[row_number]
+                        ground_spans = eval(row["spans"])
+                        predicted_spans = test_predictions[str(row_number)]
+                        predicted_spans = [
+                            span
+                            for span in predicted_spans
+                            if torch.sigmoid(torch.tensor(span["score"]))
+                            > best_threshold
+                        ]
+
+                        final_predicted_spans = []
+                        for span in predicted_spans:
+                            # print(span['start'])
+                            if span["start"] is not None and span["end"] is not None:
+                                final_predicted_spans += list(
+                                    range(span["start"], span["end"])
+                                )
+
+                        final_predicted_spans = sorted(final_predicted_spans)
+                        if row_number != len(test_original) - 1:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
+                        else:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}")
+
+    elif eval_config.style == "token":
+        if eval_config.with_ground:
+            for key in tokenized_train_dataset.keys():
+                temp_offset_mapping = tokenized_train_dataset[key]["offset_mapping"]
+                temp_untokenized_spans = untokenized_train_dataset[key]["spans"]
+
+                dataset = tokenized_train_dataset[key]
+                preds = get_token_spans_separate_logits(
+                    model, dataset, type="token"
+                )  ## Token Logits
+                preds = np.argmax(preds, axis=2)
+                f1_scores = []
+                with open(
+                    os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
+                ) as f:
+                    for i, pred in tqdm(enumerate(preds)):
+                        # print(key,i)
+                        ## Batch Wise
+                        # print(len(prediction))
+                        predicted_spans = []
+                        for j, tokenwise_prediction in enumerate(
+                            pred[: len(temp_offset_mapping[i])]
+                        ):
+                            if tokenwise_prediction == 1:
+                                predicted_spans += list(
+                                    range(
+                                        temp_offset_mapping[i][j][0],
+                                        temp_offset_mapping[i][j][1],
+                                    )
+                                )
+                        if i == len(preds) - 1:
+                            f.write(f"{i}\t{str(predicted_spans)}")
+                        else:
+                            f.write(f"{i}\t{str(predicted_spans)}\n")
+                        f1_scores.append(
+                            f1(
+                                predicted_spans,
+                                eval(temp_untokenized_spans[i]),
+                            )
+                        )
+                with open(
+                    os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
+                ) as f:
+                    f.write(str(np.mean(f1_scores)))
+        else:
+            for key in tokenized_test_dataset.keys():
+                temp_offset_mapping = tokenized_test_dataset[key]["offset_mapping"]
+                dataset = tokenized_test_dataset[key]
+                preds = get_token_spans_separate_logits(
+                    model, dataset, type="token"
+                )  ## Token Logits
+                preds = np.argmax(preds, axis=2)
+                f1_scores = []
+                with open(
+                    os.path.join(eval_config.save_dir, f"spans-pred_{key}.txt"), "w"
+                ) as f:
+                    for i, pred in tqdm(enumerate(preds)):
+                        # print(key,i)
+                        ## Batch Wise
+                        # print(len(prediction))
+                        predicted_spans = []
+                        for j, tokenwise_prediction in enumerate(
+                            pred[: len(temp_offset_mapping[i])]
+                        ):
+                            if tokenwise_prediction == 1:
+                                predicted_spans += list(
+                                    range(
+                                        temp_offset_mapping[i][j][0],
+                                        temp_offset_mapping[i][j][1],
+                                    )
+                                )
+                        if i == len(preds) - 1:
+                            f.write(f"{i}\t{str(predicted_spans)}")
+                        else:
+                            f.write(f"{i}\t{str(predicted_spans)}\n")
+
+    elif eval_config.style == "spans":
+        if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
+            with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
+                best_threshold = float(f.read().split("\n")[0])
+        else:
+            intermediate_eval = untokenized_train_dataset["validation"].map(
                 dataset.create_test_features,
                 batched=True,
-                batch_size=len(untokenized_test_dataset[key]),
-                remove_columns=untokenized_test_dataset[key].column_names,
+                batch_size=len(untokenized_train_dataset["validation"]),
+                remove_columns=untokenized_train_dataset["validation"].column_names,
             )
-            tokenized_test = intermediate_test.map(
+            tokenized_eval = intermediate_eval.map(
                 dataset.prepare_test_features,
                 batched=True,
-                remove_columns=intermediate_test.column_names,
+                remove_columns=intermediate_eval.column_names,
+            )
+            preds = get_token_spans_separate_logits(model, tokenized_eval, type="spans")
+            validation_predictions = postprocess_multi_span_predictions(
+                tokenized_eval, intermediate_eval, preds, tokenizer
             )
 
-            test_predictions = predict_tokens_spans(
-                model, tokenized_test, intermediate_test, tokenizer
-            )
-
-            test_original = untokenized_test_dataset[key]
-            with open(
-                os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
-            ) as f:
-                for row_number in range(len(test_original)):
-                    row = test_original[row_number]
+            val_original = untokenized_train_dataset["validation"]
+            best_threshold = -1
+            best_macro_f1 = -1
+            thresholds = np.linspace(0, 1, 100)
+            for threshold in tqdm(thresholds):
+                macro_f1 = 0
+                for row_number in range(len(val_original)):
+                    row = val_original[row_number]
                     ground_spans = eval(row["spans"])
-                    predicted_spans = test_predictions[str(row_number)]
+                    predicted_spans = validation_predictions[str(row_number)]
                     predicted_spans = [
                         span
                         for span in predicted_spans
-                        if torch.sigmoid(torch.tensor(span["score"])) > best_threshold
+                        if torch.sigmoid(torch.tensor(span["score"])) > threshold
                     ]
 
                     final_predicted_spans = []
@@ -553,10 +696,123 @@ elif "token_spans" in eval_config.model_name:
                             )
 
                     final_predicted_spans = sorted(final_predicted_spans)
-                    if row_number != len(test_original) - 1:
-                        f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
-                    else:
-                        f.write(f"{row_number}\t{str(final_predicted_spans)}")
+                    macro_f1 += f1(final_predicted_spans, ground_spans)
+                avg = macro_f1 / len(val_original)
+                if avg > best_macro_f1:
+                    best_macro_f1 = avg
+                    best_threshold = threshold
+            with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
+                f.write(str(best_threshold) + "\n")
+                f.write(str(best_macro_f1))
+
+        # topk = eval_config.topk
+
+        if eval_config.with_ground:
+            for key in untokenized_train_dataset.keys():
+                f1_scores = []
+                intermediate_test = untokenized_train_dataset[key].map(
+                    dataset.create_test_features,
+                    batched=True,
+                    batch_size=len(untokenized_train_dataset[key]),
+                    remove_columns=untokenized_train_dataset[key].column_names,
+                )
+                tokenized_test = intermediate_test.map(
+                    dataset.prepare_test_features,
+                    batched=True,
+                    remove_columns=intermediate_test.column_names,
+                )
+
+                preds = get_token_spans_separate_logits(
+                    model, tokenized_test, type="spans"
+                )
+                test_predictions = postprocess_multi_span_predictions(
+                    tokenized_test, intermediate_test, preds, tokenizer
+                )
+
+                test_original = untokenized_train_dataset[key]
+                with open(
+                    os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+                ) as f:
+                    for row_number in range(len(test_original)):
+                        row = test_original[row_number]
+                        ground_spans = eval(row["spans"])
+                        predicted_spans = test_predictions[str(row_number)]
+                        predicted_spans = [
+                            span
+                            for span in predicted_spans
+                            if torch.sigmoid(torch.tensor(span["score"]))
+                            > best_threshold
+                        ]
+
+                        final_predicted_spans = []
+                        for span in predicted_spans:
+                            # print(span['start'])
+                            if span["start"] is not None and span["end"] is not None:
+                                final_predicted_spans += list(
+                                    range(span["start"], span["end"])
+                                )
+
+                        final_predicted_spans = sorted(final_predicted_spans)
+                        if row_number != len(test_original) - 1:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
+                        else:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}")
+                        f1_scores.append(f1(final_predicted_spans, eval(row["spans"])))
+                with open(
+                    os.path.join(eval_config.save_dir, f"eval_scores_{key}.txt"), "w"
+                ) as f:
+                    f.write(str(np.mean(f1_scores)))
+
+        else:
+            for key in untokenized_test_dataset.keys():
+                intermediate_test = untokenized_test_dataset[key].map(
+                    dataset.create_test_features,
+                    batched=True,
+                    batch_size=len(untokenized_test_dataset[key]),
+                    remove_columns=untokenized_test_dataset[key].column_names,
+                )
+                tokenized_test = intermediate_test.map(
+                    dataset.prepare_test_features,
+                    batched=True,
+                    remove_columns=intermediate_test.column_names,
+                )
+
+                preds = get_token_spans_separate_logits(
+                    model, tokenized_test, type="spans"
+                )
+                test_predictions = postprocess_multi_span_predictions(
+                    tokenized_test, intermediate_test, preds, tokenizer
+                )
+
+                test_original = untokenized_test_dataset[key]
+                with open(
+                    os.path.join(eval_config.save_dir, f"spans-pred-{key}.txt"), "w"
+                ) as f:
+                    for row_number in range(len(test_original)):
+                        row = test_original[row_number]
+                        ground_spans = eval(row["spans"])
+                        predicted_spans = test_predictions[str(row_number)]
+                        predicted_spans = [
+                            span
+                            for span in predicted_spans
+                            if torch.sigmoid(torch.tensor(span["score"]))
+                            > best_threshold
+                        ]
+
+                        final_predicted_spans = []
+                        for span in predicted_spans:
+                            # print(span['start'])
+                            if span["start"] is not None and span["end"] is not None:
+                                final_predicted_spans += list(
+                                    range(span["start"], span["end"])
+                                )
+
+                        final_predicted_spans = sorted(final_predicted_spans)
+                        if row_number != len(test_original) - 1:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}\n")
+                        else:
+                            f.write(f"{row_number}\t{str(final_predicted_spans)}")
+
 
 elif "token" in eval_config.model_name:
     trainer = Trainer(
