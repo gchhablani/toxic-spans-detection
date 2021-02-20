@@ -1,0 +1,5 @@
+type: union
+files:
+  - "/content/drive/My Drive/ToxicSpans/results/combine_predictions/spans-pred-original_test-union_spanbert_spans_best_3_ckpts.txt"
+  - "/content/drive/My Drive/ToxicSpans/results/roberta_token/preds/spans-pred-original_test.txt"
+path: "/content/drive/My Drive/ToxicSpans/results/combine_predictions/spans-pred-original_test-union_roberta_token_union_spanbert_spans_best_3_ckpts.txt"

@@ -1,3 +1,4 @@
+import os
 import argparse
 from omegaconf import OmegaConf
 
@@ -52,4 +53,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     combine_config = OmegaConf.load(args.config)
     text = combine(combine_config.files, combine_config.type)
+    dir = "/".join(combine_config.path.split("/")[:-1])
+    if not os.path.exists(dir):
+        os.makedirs(dir)
     write_dict_to_file(text, combine_config.path)
