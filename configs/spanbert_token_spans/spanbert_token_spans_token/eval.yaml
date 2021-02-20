@@ -1,0 +1,29 @@
+model_name: bert_token_spans
+results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_token_spans"
+dataset:
+  name: toxic_spans_tokens_spans
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-4000
+  train_files:
+    train: ./data/clean_train.csv
+    validation: ./data/clean_trial.csv
+    original_trial: ./data/tsd_trial.csv
+    original_train: ./data/tsd_train.csv
+    original_test: ./data/tsd_test_spans.csv
+  eval_files:
+    test: ./data/tsd_test.csv
+  label_cls: true
+  cls_threshold: 0.3 # can be tuned
+  token_threshold: 0.0 # can be tuned
+  tokenizer_params:
+    truncation: "only_second"
+    max_length: 384
+    stride: 128
+    return_overflowing_tokens: true
+    return_offsets_mapping: true
+    padding: max_length
+pretrained_args:
+  pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
+with_ground: true
+topk: 25
+style: token
+save_dir: ${results_dir}/spanbert_token_spans_token/preds/
