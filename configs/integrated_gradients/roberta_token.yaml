@@ -1,0 +1,28 @@
+model_name: autotoken
+name: roberta
+n_steps: 25
+type: token
+sample_index: 10 # should be in [0,1999] for test
+word_out_file: "/content/drive/My Drive/ToxicSpans/results/IG/robert_token/word_importances"
+token_out_file: "/content/drive/My Drive/ToxicSpans/results/IG/robert_token/token_importances"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_token"
+data_config:
+  name: toxic_spans_tokens
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
+  train_files:
+    train: ./data/clean_train.csv
+    validation: ./data/clean_trial.csv
+  eval_files:
+    test: ./data/tsd_test.csv
+  label_cls: true
+  cls_threshold: 0.3 # can be tuned
+  token_threshold: 0.0 # can be tuned
+  tokenizer_params:
+    truncation: true
+    max_length: 384 # originally we used 200
+    padding: max_length
+    return_offsets_mapping: true
+pretrained_args:
+  pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
+with_ground: true
+save_dir: ${results_dir}/preds/

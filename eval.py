@@ -137,6 +137,12 @@ args = parser.parse_args()
 eval_config = OmegaConf.load(args.eval)
 data_config = eval_config.dataset
 
+## Scope for Improvement:
+# 1. Remove all but one train files in the eval config, move all to test, will be easier to load and process during the prediction.
+# 2. Add an option to exclude train/test files.
+# 3. Remove redundant code from the eval script.
+# 4. Make all postprocessing functions same with more features.
+# 5. Use fn in predict_xyz, and pass function based on type.
 dataset = configmapper.get_object("datasets", data_config.name)(data_config)
 untokenized_train_dataset = dataset.dataset
 untokenized_test_dataset = dataset.test_dataset
