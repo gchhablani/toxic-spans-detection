@@ -20,6 +20,8 @@ from src.datasets import *
 from src.models import *
 from src.utils.mapper import configmapper
 import pickle as pkl
+from IPython.core.display import HTML
+from src.utils.viz import format_word_importances, save_to_file
 
 
 def postprocess_spans_with_index(
@@ -362,6 +364,7 @@ def get_word_wise_importances_spans(
     return (
         words,
         word_wise_importances / np.sum(word_wise_importances),
+        word_wise_offsets,
     )
 
 
@@ -435,6 +438,7 @@ def get_word_wise_importances(
     return (
         words,
         word_wise_importances / np.sum(word_wise_importances),
+        word_wise_offsets,
     )
 
 
@@ -600,6 +604,7 @@ if __name__ == "__main__":
             thresh = float(f.read().split()[0])
 
         text = (example["question"][0], example["context"][0])
+        ignore_first_word = True
 
     else:
         example_intermediate = dataset.test_dataset["test"][ig_config.sample_index]
@@ -618,6 +623,7 @@ if __name__ == "__main__":
         fn = get_token_model_output
         thresh = None
         text = example["text"][0]
+        ignore_first_word = False
 
     model_class = configmapper.get_object("models", ig_config.model_name)
     model = model_class.from_pretrained(**ig_config.pretrained_args)
@@ -644,3 +650,26 @@ if __name__ == "__main__":
         pkl.dump(importances["word_importances"], f)
     with open(ig_config.token_out_file, "wb") as f:
         pkl.dump(importances["token_importances"], f)
+
+    words, importances, word_wise_offsets = importances["word_importances"]
+
+    ground_offsets = eval(
+        pd.read_csv(ig_config.ground_truths_file)["spans"][ig_config.sample_index]
+    )
+
+    predicted_offsets = eval(
+        pd.read_csv(ig_config.predictions_file, header=None, sep="\t")[1][
+            ig_config.sample_index
+        ]
+    )
+
+    html = format_word_importances(
+        words,
+        importances,
+        word_wise_offsets,
+        ground_offsets,
+        predicted_offsets,
+        ignore_first_word,
+    )
+
+    save_to_file(html, ig_config.viz_out_file)

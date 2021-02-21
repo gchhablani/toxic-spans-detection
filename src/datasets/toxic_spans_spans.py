@@ -16,28 +16,31 @@ class ToxicSpansSpansDataset:
         self.dataset = load_dataset("csv", data_files=dict(self.config.train_files))
         self.test_dataset = load_dataset("csv", data_files=dict(self.config.eval_files))
 
+        temp_key_train = list(self.dataset.keys())[0]
         self.intermediate_dataset = self.dataset.map(
             self.create_train_features,
             batched=True,
             batch_size=1000000,  ##Unusually Large Batch Size ## Needed For Correct ID mapping
-            remove_columns=self.dataset["train"].column_names,
+            remove_columns=self.dataset[temp_key_train].column_names,
         )
+
+        temp_key_test = list(self.test_dataset.keys())[0]
         self.intermediate_test_dataset = self.test_dataset.map(
             self.create_test_features,
             batched=True,
             batch_size=1000000,  ##Unusually Large Batch Size ## Needed For Correct ID mapping
-            remove_columns=self.test_dataset["test"].column_names,
+            remove_columns=self.test_dataset[temp_key_test].column_names,
         )
 
         self.tokenized_inputs = self.intermediate_dataset.map(
             self.prepare_train_features,
             batched=True,
-            remove_columns=self.intermediate_dataset["train"].column_names,
+            remove_columns=self.intermediate_dataset[temp_key_train].column_names,
         )
         self.test_tokenized_inputs = self.intermediate_test_dataset.map(
             self.prepare_test_features,
             batched=True,
-            remove_columns=self.intermediate_test_dataset["test"].column_names,
+            remove_columns=self.intermediate_test_dataset[temp_key_test].column_names,
         )
 
     def create_train_features(self, examples):
