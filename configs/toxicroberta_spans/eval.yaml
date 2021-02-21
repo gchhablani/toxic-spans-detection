@@ -1,0 +1,25 @@
+model_name: autospans
+results_dir: "/content/drive/My Drive/ToxicSpans/results/toxicroberta_spans"
+dataset:
+  name: toxic_spans_spans
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-4000
+  train_files:
+    train: ./data/clean_train.csv
+    validation: ./data/clean_trial.csv
+    original_trial: ./data/tsd_trial.csv
+    original_train: ./data/tsd_train.csv
+    original_test: ./data/tsd_test_spans.csv
+  eval_files:
+    test: ./data/tsd_test.csv
+  tokenizer_params:
+    truncation: "only_second"
+    max_length: 384
+    stride: 128
+    return_overflowing_tokens: true
+    return_offsets_mapping: true
+    padding: max_length
+pretrained_args:
+  pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
+with_ground: true
+topk: 25
+save_dir: ${results_dir}/preds/
