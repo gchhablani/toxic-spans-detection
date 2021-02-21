@@ -1,14 +1,16 @@
-model_name: autotoken
-name: roberta
+model_name: autospans
+name: bert
 n_steps: 25
-type: token
+type: spans
 sample_index: 10 # should be in [0,1999] for test
-out_dir: "/content/drive/My Drive/ToxicSpans/results/IG/roberta_token"
+
+out_dir: "/content/drive/My Drive/ToxicSpans/results/IG/spanbert_spans"
 word_out_file: ${out_dir}/word_importances
 token_out_file: ${out_dir}/token_importances
-results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_token"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_spans"
+thresh_file: ${results_dir}/preds/thresh.txt
 data_config:
-  name: toxic_spans_tokens
+  name: toxic_spans_spans
   model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
   train_files:
     validation: ./data/clean_trial.csv
@@ -18,9 +20,11 @@ data_config:
   cls_threshold: 0.3 # can be tuned
   token_threshold: 0.0 # can be tuned
   tokenizer_params:
-    truncation: true
-    max_length: 384 # originally we used 200
-    padding: max_length
+    truncation: "only_second"
+    max_length: 384
+    stride: 128
+    return_overflowing_tokens: true
     return_offsets_mapping: true
+    padding: max_length
 pretrained_args:
   pretrained_model_name_or_path: ${data_config.model_checkpoint_name}

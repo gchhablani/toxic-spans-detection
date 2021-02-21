@@ -36,6 +36,9 @@ def postprocess_spans_with_index(
     # Build a map example to its corresponding features.
     example_id_to_index = {k: i for i, k in enumerate(list(examples["id"]))}
     features_per_example = collections.defaultdict(list)
+    columns = ["input_ids", "attention_mask", "token_type_ids"]
+
+    features.set_format(type="torch", columns=columns, output_all_columns=True)
     for i, feature in enumerate(features):
         features_per_example[example_id_to_index[feature["example_id"]]].append(i)
 
@@ -66,7 +69,7 @@ def postprocess_spans_with_index(
             offset_mapping = features[feature_index]["offset_mapping"]
 
             # Update minimum null prediction.
-            cls_index = features[feature_index]["input_ids"].index(
+            cls_index = list(features[feature_index]["input_ids"]).index(
                 tokenizer.cls_token_id
             )
             feature_null_score = start_logits[cls_index] + end_logits[cls_index]
@@ -135,42 +138,48 @@ def postprocess_spans_with_index(
 def get_spans_token_indices_above_threshold(
     model, feature, example, threshold, tokenizer
 ):
+    # print(feature)
     trainer = Trainer(
         model,
     )
+    # print(feature)
     raw_predictions = trainer.predict(feature)
     feature.set_format(
         type=feature.format["type"], columns=list(feature.features.keys())
     )
+    # print(feature)
     predictions = postprocess_spans_with_index(
         feature, example, raw_predictions.predictions, tokenizer
     )
     start_end_indices = []
-    for span in predictions[0]:  ## Should Contain Only One Example
+    for span in list(predictions.values())[0]:  ## Should Contain Only One Example
         if torch.sigmoid(torch.tensor(span["score"])) > threshold:
-            start_end_indices.append(span["start_index"], span["end_index"])
+            start_end_indices.append((span["start_index"], span["end_index"]))
     return start_end_indices
 
 
-def get_token_token_indices(model, feature):
+def get_token_token_indices(model, feature, tokenizer):
     trainer = Trainer(model)
     predictions = trainer.predict(feature)
     preds = predictions.predictions
     preds = np.argmax(preds, axis=2)
     token_indices = []
+    input_ids = feature["input_ids"][0]
     for j, pred in enumerate(preds[0]):  ## Should Contain Only One Example
-        if pred == 1:  ## Toxic
+        if pred == 1 and input_ids[j] != tokenizer.pad_token_id:  ## Toxic
             token_indices.append(j)
-    return list(set(token_indices))
+    return sorted(list(set(token_indices)))
 
 
 def get_token_model_output(
-    model, embedding_outputs, attention_masks, name="bert", position=None
+    embedding_outputs, model, attention_masks, name="bert", position=None
 ):
+
     if name == "bert":
         extended_attention_masks = model.bert.get_extended_attention_mask(
             attention_masks, embedding_outputs.shape, torch.device("cuda")
         )
+        # print(embedding_outputs,attention_masks,extended_attention_masks)
         out = model.bert.encoder(
             embedding_outputs, extended_attention_masks, return_dict=None
         )[0]
@@ -185,23 +194,24 @@ def get_token_model_output(
 
     out = model.dropout(out)
     logits = model.classifier(out)
-    return F.softmax(logits, dim=1)
+    return F.softmax(logits, dim=2)[:, :, 1]  ## Select only Toxic Logits
 
 
 def get_spans_model_output(
-    model, embedding_outputs, attention_masks, name="bert", position="start"
+    embedding_outputs, model, attention_masks, name="bert", position="start"
 ):
     if name == "bert":
         extended_attention_masks = model.bert.get_extended_attention_mask(
             attention_masks, embedding_outputs.shape, torch.device("cuda")
-        )
+        ).cuda()
+
         out = model.bert.encoder(
             embedding_outputs, extended_attention_masks, return_dict=None
         )[0]
     else:
         extended_attention_masks = model.roberta.get_extended_attention_mask(
             attention_masks, embedding_outputs.shape, torch.device("cuda")
-        )
+        ).cuda()
         out = model.roberta.encoder(
             embedding_outputs, extended_attention_masks, return_dict=None
         )[0]
@@ -215,15 +225,16 @@ def get_spans_model_output(
     return pred.reshape(-1, embedding_outputs.size(-2))
 
 
-def get_embedding_outputs(self, input_ids, name="bert"):
+def get_embedding_outputs(model, input_ids, name="bert"):
     if name == "bert":
-        return self.model.bert.embeddings(input_ids)
+        return model.bert.embeddings(input_ids)
     else:
-        return self.model.roberta.embeddings(input_ids)
+        return model.roberta.embeddings(input_ids)
 
 
 def get_token_wise_attributions(
     fn,
+    model,
     embedding_outputs,
     attention_masks,
     name,
@@ -233,6 +244,7 @@ def get_token_wise_attributions(
     internal_batch_size=4,
     method="riemann_right",
 ):
+
     int_grad = IntegratedGradients(
         fn,
         multiply_by_inputs=True,
@@ -242,7 +254,7 @@ def get_token_wise_attributions(
         target=token_index,
         n_steps=n_steps,
         method=method,
-        additional_forward_args=(attention_masks, name, position),
+        additional_forward_args=(model, attention_masks, name, position),
         internal_batch_size=internal_batch_size,
         return_convergence_delta=True,
     )
@@ -253,7 +265,7 @@ def get_token_wise_attributions(
 
 
 def get_token_wise_importances(input_ids, attributions, tokenizer):
-    tokens = tokenizer.convert_ids_to_tokens(input_ids)
+    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
     token_wise_attributions = torch.linalg.norm(attributions, dim=1)
     token_wise_importances = token_wise_attributions / torch.sum(
         token_wise_attributions, dim=0
@@ -267,14 +279,26 @@ def get_token_wise_importances(input_ids, attributions, tokenizer):
     )
 
 
-def get_word_wise_importances(
+def get_word_wise_importances_spans(
     input_ids, offset_mapping, importances, text, tokenizer, name="bert"
 ):
-    tokens = tokenizer.convert_ids_to_tokens(input_ids)
-    offset_mapping = offset_mapping
+    question = text[0]
+    context = text[1]
+    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+    offset_mapping = offset_mapping[0]
+    print(offset_mapping)
+    question_offsets = tokenizer(
+        "offense", add_special_tokens=False, return_offsets_mapping=True
+    )["offset_mapping"]
+    i = 1
+    while i < len(offset_mapping) and tokens[i] != "[SEP]":
+        offset_mapping[i] = question_offsets[i - 1]
+        i += 1
+    print(offset_mapping)
     word_wise_importances = []
     word_wise_offsets = []
     words = []
+    is_context = False
     if name == "bert":
         for i, token in enumerate(tokens):
             if token == "[SEP]":
@@ -283,8 +307,77 @@ def get_word_wise_importances(
             if token == "[CLS]":
                 is_context = False
                 continue
-
             if token == "[PAD]":
+                continue
+
+            if token.startswith("##"):
+                if (
+                    tokens[i - 1] == "[SEP]"
+                ):  # Tokens can be broked due to stride after the [SEP]
+                    word_wise_importances.append(
+                        importances[i]
+                    )  # We just make new entries for them
+                    word_wise_offsets.append(offset_mapping[i])
+                    if is_context:
+                        words.append(
+                            context[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]]
+                        )
+                    else:
+                        words.append(
+                            question[
+                                word_wise_offsets[-1][0] : word_wise_offsets[-1][1]
+                            ]
+                        )
+
+                else:
+                    word_wise_importances[-1] += importances[i]
+                    word_wise_offsets[-1] = (
+                        word_wise_offsets[-1][0],
+                        offset_mapping[i][1],
+                    )  ## Expand the offsets
+                    if is_context:
+                        words[-1] = context[
+                            word_wise_offsets[-1][0] : word_wise_offsets[-1][1]
+                        ]
+                    else:
+                        words[-1] = question[
+                            word_wise_offsets[-1][0] : word_wise_offsets[-1][1]
+                        ]
+
+            else:
+                word_wise_importances.append(
+                    importances[i]
+                )  # We just make new entries for them
+                word_wise_offsets.append(offset_mapping[i])
+                if is_context:
+                    words.append(
+                        context[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]]
+                    )
+                else:
+                    words.append(
+                        question[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]]
+                    )
+    else:
+        raise NotImplementedError("Not defined for any other model name than 'bert'")
+    return (
+        words,
+        word_wise_importances / np.sum(word_wise_importances),
+    )
+
+
+def get_word_wise_importances(
+    input_ids, offset_mapping, importances, text, tokenizer, name="bert"
+):
+    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+    offset_mapping = offset_mapping[0]
+    print(offset_mapping)
+    word_wise_importances = []
+    word_wise_offsets = []
+    words = []
+    if name == "bert":
+        for i, token in enumerate(tokens):
+            print(token)
+            if token in ["[SEP]", "[PAD]", "[CLS]"]:
                 continue
 
             if token.startswith("##"):
@@ -309,39 +402,36 @@ def get_word_wise_importances(
                     words[-1] = text[
                         word_wise_offsets[-1][0] : word_wise_offsets[-1][1]
                     ]
+            else:
+                word_wise_importances.append(
+                    importances[i]
+                )  # We just make new entries for them
+                word_wise_offsets.append(offset_mapping[i])
+                words.append(text[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]])
 
     else:
         for i, token in enumerate(tokens):
             if token in ["<s>", "</s>", "<pad>"]:
                 continue
 
-            if tokens[i - 1] not in ["<s>", "</s>"] and not token.startswith("Ġ"):
-                if (
-                    tokens[i - 1] == "[SEP]"
-                ):  # Tokens can be broked due to stride after the [SEP]
-                    word_wise_importances.append(
-                        importances[i]
-                    )  # We just make new entries for them
-                    word_wise_offsets.append(offset_mapping[i])
+            if (
+                tokens[i - 1] in ["<s>", "</s>"] and token[i] not in ["<s>", "</s>"]
+            ) or token.startswith("Ġ"):
+                word_wise_importances.append(
+                    importances[i]
+                )  # We just make new entries for them
+                word_wise_offsets.append(offset_mapping[i])
 
-                    words.append(
-                        text[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]]
-                    )
-
-                else:
-                    word_wise_importances[-1] += importances[i]
-                    word_wise_offsets[-1] = (
-                        word_wise_offsets[-1][0],
-                        offset_mapping[i][1],
-                    )
-                    words[-1] = text[
-                        word_wise_offsets[-1][0] : word_wise_offsets[-1][1]
-                    ]
+                words.append(text[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]])
 
             else:
-                word_wise_importances.append(importances[i])
-                word_wise_offsets.append(offset_mapping[i])
-                words.append(text[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]])
+                word_wise_importances[-1] += importances[i]
+                word_wise_offsets[-1] = (
+                    word_wise_offsets[-1][0],
+                    offset_mapping[i][1],
+                )
+                words[-1] = text[word_wise_offsets[-1][0] : word_wise_offsets[-1][1]]
+
     return (
         words,
         word_wise_importances / np.sum(word_wise_importances),
@@ -357,27 +447,33 @@ def get_importances(
     tokenizer,
     text,
     n_steps,
-    type="spans",
+    typ="spans",
     threshold=None,
 ):
 
-    columns = ["input_ids", "attention_mask"]
+    columns = ["input_ids", "attention_mask", "token_type_ids"]
 
-    for key in columns:
-        example[key] = torch.tensor(example[key], device=torch.device("cuda"))
-    embedding_outputs = get_embedding_outputs(feature["input_ids"])
+    feature.set_format(
+        type="torch", columns=columns, device="cuda", output_all_columns=True
+    )
+    embedding_outputs = get_embedding_outputs(model, feature["input_ids"], name)
 
-    if type == "spans":
+    if typ == "spans":
         start_end_indices = get_spans_token_indices_above_threshold(
             model, feature, example, threshold, tokenizer
         )
 
-        all_token_importances = []
+        print(start_end_indices)
+        feature.set_format(
+            type="torch", columns=columns, device="cuda", output_all_columns=True
+        )
+        all_token_importances = np.array([])
         for indices in start_end_indices:
             start_pos = [indices[0]]
             end_pos = [indices[1]]
             start_attributions = get_token_wise_attributions(
                 fn,
+                model,
                 embedding_outputs,
                 feature["attention_mask"],
                 name,
@@ -387,6 +483,7 @@ def get_importances(
             )
             end_attributions = get_token_wise_attributions(
                 fn,
+                model,
                 embedding_outputs,
                 feature["attention_mask"],
                 name,
@@ -395,20 +492,40 @@ def get_importances(
                 n_steps,
             )
             total_attributions = (
-                start_attributions["attributions"] + end_attributions["attributions"]
+                start_attributions["attributions"][0]
+                + end_attributions["attributions"][0]
             )
             tokens, total_importance_scores = get_token_wise_importances(
                 feature["input_ids"], total_attributions, tokenizer
             )
-            all_token_importances.append(total_importance_scores)
-        avg_token_importances = np.mean(all_token_importances, axis=1)
+            all_token_importances = np.append(
+                all_token_importances, total_importance_scores
+            )
+        all_token_importances = all_token_importances.reshape(
+            len(start_end_indices), -1
+        )
+        avg_token_importances = np.mean(all_token_importances, axis=0)
+        word_importances = get_word_wise_importances_spans(
+            feature["input_ids"],
+            feature["offset_mapping"],
+            avg_token_importances,
+            text,
+            tokenizer,
+            name,
+        )
     else:
-        token_indices = get_token_token_indices(model, feature)
-        all_token_importances = []
+        token_indices = get_token_token_indices(model, feature, tokenizer)
+        print(token_indices)
+
+        feature.set_format(
+            type="torch", columns=columns, device="cuda", output_all_columns=True
+        )
+        all_token_importances = np.array([])
         for index in token_indices:
             pos = [index]
             attributions = get_token_wise_attributions(
                 fn,
+                model,
                 embedding_outputs,
                 feature["attention_mask"],
                 name,
@@ -416,20 +533,23 @@ def get_importances(
                 pos,
                 n_steps,
             )
+            attributions = attributions["attributions"][0]
             tokens, importance_scores = get_token_wise_importances(
                 feature["input_ids"], attributions, tokenizer
             )
-            all_token_importances.append(importance_scores, axis=1)
-        avg_token_importances = np.mean(all_token_importances, axis=1)
+            all_token_importances = np.append(all_token_importances, importance_scores)
+        all_token_importances = all_token_importances.reshape(len(token_indices), -1)
+        avg_token_importances = np.mean(all_token_importances, axis=0)
+        word_importances = get_word_wise_importances(
+            feature["input_ids"],
+            feature["offset_mapping"],
+            avg_token_importances,
+            text,
+            tokenizer,
+            name,
+        )
 
-    word_importances = get_word_wise_importances(
-        feature["input_ids"],
-        feature["offset_mapping"],
-        avg_token_importances,
-        text,
-        tokenizer,
-        name,
-    )
+    print(avg_token_importances)
 
     return {
         "word_importances": word_importances,
@@ -456,42 +576,53 @@ if __name__ == "__main__":
     dataset = configmapper.get_object("datasets", data_config.name)(data_config)
 
     if ig_config.type == "spans":
-        example = Dataset.from_dict(
-            [
-                dataset.intermediate_test_dataset[data_config.eval_files[0]][
-                    ig_config.sample_index
-                ]
-            ]
-        )
-        feature = Dataset.from_dict(
-            [
-                dataset.test_tokenized_inputs[data_config.eval_files[0]][
-                    ig_config.sample_index
-                ]
-            ]
-        )
+        example_intermediate = dataset.intermediate_test_dataset["test"][
+            ig_config.sample_index
+        ]
+        for key in example_intermediate.keys():
+            example_intermediate[key] = [example_intermediate[key]]
+        example = Dataset.from_dict(example_intermediate)
+        # print(example)
+        potential_feature_indices = [
+            i
+            for i, feature in enumerate(dataset.test_tokenized_inputs["test"])
+            if feature["example_id"] == example[0]["id"]
+        ]
+        feature_intermediate = dataset.test_tokenized_inputs["test"][
+            potential_feature_indices[0]
+        ]  # Take First Feature
+        for key in feature_intermediate.keys():
+            feature_intermediate[key] = [feature_intermediate[key]]
+        feature = Dataset.from_dict(feature_intermediate)
+
         fn = get_spans_model_output
         with open(ig_config.thresh_file, "r") as f:
             thresh = float(f.read().split()[0])
-        text = example[0]["context"]
+
+        text = (example["question"][0], example["context"][0])
 
     else:
-        example = Dataset.from_dict(
-            [dataset.test_dataset[data_config.eval_files[0]][ig_config.sample_index]]
-        )
-        feature = Dataset.from_dict(
-            [
-                dataset.test_tokenized_inputs[data_config.eval_files[0]][
-                    ig_config.sample_index
-                ]
-            ]
-        )
+        example_intermediate = dataset.test_dataset["test"][ig_config.sample_index]
+        for key in example_intermediate.keys():
+            example_intermediate[key] = [example_intermediate[key]]
+        example = Dataset.from_dict(example_intermediate)
+        # print(example)
+
+        feature_intermediate = dataset.test_tokenized_inputs["test"][
+            ig_config.sample_index
+        ]
+        for key in feature_intermediate.keys():
+            feature_intermediate[key] = [feature_intermediate[key]]
+        feature = Dataset.from_dict(feature_intermediate)
+        # print(feature)
         fn = get_token_model_output
         thresh = None
-        text = example[0]["text"]
+        text = example["text"][0]
 
     model_class = configmapper.get_object("models", ig_config.model_name)
     model = model_class.from_pretrained(**ig_config.pretrained_args)
+    model.cuda()
+    model.eval()
     tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 
     importances = get_importances(
@@ -506,7 +637,10 @@ if __name__ == "__main__":
         ig_config.type,  # 'spans' or 'token'
         thresh,
     )
-    with open(ig_config.word_out_file, "w") as f:
+
+    if not os.path.exists(ig_config.out_dir):
+        os.makedirs(ig_config.out_dir)
+    with open(ig_config.word_out_file, "wb") as f:
         pkl.dump(importances["word_importances"], f)
-    with open(ig_config.token_out_file, "w") as f:
+    with open(ig_config.token_out_file, "wb") as f:
         pkl.dump(importances["token_importances"], f)
