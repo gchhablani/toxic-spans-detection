@@ -602,7 +602,7 @@ elif "token_spans" in eval_config.model_name:
                 temp_tokenized_dataset = temp_intermediate_dataset.map(
                     dataset.prepare_test_features,
                     batched=True,
-                    remove_columsn=temp_intermediate_dataset.column_names,
+                    remove_columns=temp_intermediate_dataset.column_names,
                 )
                 temp_offset_mapping = temp_tokenized_dataset["offset_mapping"]
 
@@ -657,7 +657,7 @@ elif "token_spans" in eval_config.model_name:
                 temp_tokenized_dataset = temp_intermediate_dataset.map(
                     dataset.prepare_test_features,
                     batched=True,
-                    remove_columsn=temp_intermediate_dataset.column_names,
+                    remove_columns=temp_intermediate_dataset.column_names,
                 )
                 temp_offset_mapping = temp_tokenized_dataset["offset_mapping"]
 
