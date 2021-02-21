@@ -5,7 +5,7 @@ import numpy as np
 
 
 def calculate_f1(preds_file, ground_file, out_file):
-    ground_spans = pd.read_csv(ground_file)["spans"].values
+    ground_spans = pd.read_csv(ground_file)["spans"].apply(lambda x: eval(x)).values
     pred_spans = []
     with open(preds_file, "r") as f:
         for line in f:
