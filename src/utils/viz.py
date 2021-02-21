@@ -37,22 +37,16 @@ def format_special_tokens(token):
 def format_word_importances(
     words,
     importances,
-    word_wise_offsets,
-    ground_offsets,
-    predicted_offsets,
-    ignore_first_word=False,
+    ground_text_spans,
+    predicted_text_spans,
 ):
     if np.isnan(importances[0]):
         importances = np.zeros_like(importances)
 
     assert len(words) <= len(importances)
     tags = ["<div>"]
-    if ignore_first_word:
-        words = words[1:]
-        importances = importances[1:]
-        word_wise_offsets = word_wise_offsets[1:]
 
-    for word_index, word, importance in enumerate(
+    for word_index, (word, importance) in enumerate(
         zip(words, importances[: len(words)])
     ):
         word = format_special_tokens(word)
@@ -61,23 +55,26 @@ def format_word_importances(
                 print(word)
                 break
         color = _get_color(importance)
-        offsets = list(
-            range(word_wise_offsets[word_index][0], word_wise_offsets[word_index][1])
-        )
-        for character_index, character in enumerate(word):
-            if offsets[character_index] in ground_offsets:
-                span_style = "text-decoration= red underline"
-            else:
-                span_style = ""
-            if offsets[character_index] in predicted_offsets:
-                mark_style = ";text-decoration= blue overline"
-            else:
-                mark_style = ""
-            unwrapped_tag = f'<span style="{span_style}"><mark style="background-color: {color}; opacity:1.0; \
-                        line-height:1.75 {mark_style}"><font color="black"> {character}\
-                        </font></mark></span>'
+
+        unwrapped_tag = f'<mark style="background-color: {color}; opacity:1.0; \
+                    line-height:1.75"><font color="black"> {word}\
+                    </font></mark>'
         tags.append(unwrapped_tag)
     tags.append("</div>")
+    tags.append("<br><span> <b>Ground Spans</b>:[ ")
+    for i, span in enumerate(ground_text_spans):
+        if i != len(ground_text_spans) - 1:
+            tags.append(f"'{span}',")
+        else:
+            tags.append(f"'{span}'")
+    tags.append(" ]</span>")
+    tags.append("<br><span> <b>Predicted Spans</b>: [ ")
+    for i, span in enumerate(predicted_text_spans):
+        if i != len(predicted_text_spans) - 1:
+            tags.append(f"'{span}',")
+        else:
+            tags.append(f"'{span}'")
+    tags.append(" ]</span>")
     return HTML("".join(tags))
 
 

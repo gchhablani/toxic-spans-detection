@@ -22,6 +22,7 @@ from src.utils.mapper import configmapper
 import pickle as pkl
 from IPython.core.display import HTML
 from src.utils.viz import format_word_importances, save_to_file
+from evaluation.fix_spans import _contiguous_ranges
 
 
 def postprocess_spans_with_index(
@@ -288,7 +289,6 @@ def get_word_wise_importances_spans(
     context = text[1]
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
     offset_mapping = offset_mapping[0]
-    print(offset_mapping)
     question_offsets = tokenizer(
         "offense", add_special_tokens=False, return_offsets_mapping=True
     )["offset_mapping"]
@@ -296,7 +296,6 @@ def get_word_wise_importances_spans(
     while i < len(offset_mapping) and tokens[i] != "[SEP]":
         offset_mapping[i] = question_offsets[i - 1]
         i += 1
-    print(offset_mapping)
     word_wise_importances = []
     word_wise_offsets = []
     words = []
@@ -379,7 +378,6 @@ def get_word_wise_importances(
     words = []
     if name == "bert":
         for i, token in enumerate(tokens):
-            print(token)
             if token in ["[SEP]", "[PAD]", "[CLS]"]:
                 continue
 
@@ -553,8 +551,6 @@ def get_importances(
             name,
         )
 
-    print(avg_token_importances)
-
     return {
         "word_importances": word_importances,
         # batches, batch_size, len of examples
@@ -625,51 +621,72 @@ if __name__ == "__main__":
         text = example["text"][0]
         ignore_first_word = False
 
-    model_class = configmapper.get_object("models", ig_config.model_name)
-    model = model_class.from_pretrained(**ig_config.pretrained_args)
-    model.cuda()
-    model.eval()
-    tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
+    if not os.path.exists(ig_config.word_out_file):
 
-    importances = get_importances(
-        model,
-        ig_config.name,  # bert or roberta
-        feature,
-        example,
-        fn,
-        tokenizer,
-        text,
-        ig_config.n_steps,
-        ig_config.type,  # 'spans' or 'token'
-        thresh,
+        model_class = configmapper.get_object("models", ig_config.model_name)
+        model = model_class.from_pretrained(**ig_config.pretrained_args)
+        model.cuda()
+        model.eval()
+        tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
+
+        importances = get_importances(
+            model,
+            ig_config.name,  # bert or roberta
+            feature,
+            example,
+            fn,
+            tokenizer,
+            text,
+            ig_config.n_steps,
+            ig_config.type,  # 'spans' or 'token'
+            thresh,
+        )
+
+        if not os.path.exists(ig_config.out_dir):
+            os.makedirs(ig_config.out_dir)
+        with open(ig_config.word_out_file, "wb") as f:
+            pkl.dump(importances["word_importances"], f)
+        with open(ig_config.token_out_file, "wb") as f:
+            pkl.dump(importances["token_importances"], f)
+
+        words, importances, word_wise_offsets = importances["word_importances"]
+
+    else:
+        with open(ig_config.word_out_file, "rb") as f:
+            words, importances, word_wise_offsets = pkl.load(f)
+
+    ground_spans = _contiguous_ranges(
+        eval(pd.read_csv(ig_config.ground_truths_file)["spans"][ig_config.sample_index])
     )
 
-    if not os.path.exists(ig_config.out_dir):
-        os.makedirs(ig_config.out_dir)
-    with open(ig_config.word_out_file, "wb") as f:
-        pkl.dump(importances["word_importances"], f)
-    with open(ig_config.token_out_file, "wb") as f:
-        pkl.dump(importances["token_importances"], f)
-
-    words, importances, word_wise_offsets = importances["word_importances"]
-
-    ground_offsets = eval(
-        pd.read_csv(ig_config.ground_truths_file)["spans"][ig_config.sample_index]
+    predicted_spans = _contiguous_ranges(
+        eval(
+            pd.read_csv(ig_config.predictions_file, header=None, sep="\t")[1][
+                ig_config.sample_index
+            ]
+        )
     )
 
-    predicted_offsets = eval(
-        pd.read_csv(ig_config.predictions_file, header=None, sep="\t")[1][
-            ig_config.sample_index
-        ]
-    )
+    ground_text_spans = []
+    predicted_text_spans = []
+    if ignore_first_word:
+        for span in ground_spans:
+            ground_text_spans.append(text[1][span[0] : span[1] + 1])
+        for span in predicted_spans:
+            predicted_text_spans.append(text[1][span[0] : span[1] + 1])
+    else:
+        for span in ground_spans:
+            ground_text_spans.append(text[span[0] : span[1] + 1])
+        for span in predicted_spans:
+            predicted_text_spans.append(text[span[0] : span[1] + 1])
+
+    print(words)
+    print(importances)
+    print(ground_text_spans)
+    print(predicted_text_spans)
 
     html = format_word_importances(
-        words,
-        importances,
-        word_wise_offsets,
-        ground_offsets,
-        predicted_offsets,
-        ignore_first_word,
+        words, importances, ground_text_spans, predicted_text_spans
     )
 
     save_to_file(html, ig_config.viz_out_file)
