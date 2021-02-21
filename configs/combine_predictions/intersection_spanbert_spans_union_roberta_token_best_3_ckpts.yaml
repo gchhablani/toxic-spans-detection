@@ -1,5 +1,5 @@
 type: intersection
 files:
-  - "/content/drive/My Drive/ToxicSpans/results/combine_predictions/spans-pred_original_test-union_roberta_token_best_3_ckpts.txt"
-  - "/content/drive/My Drive/ToxicSpans/results/spanbert_spans/preds/spans-pred_original_test.txt"
-path: "/content/drive/My Drive/ToxicSpans/results/combine_predictions/spans-pred_original_test-intersection_spanbert_spans_union_roberta_token_best_3_ckpts.txt"
+  - "/content/drive/MyDrive/ToxicSpans/results/combine_predictions/spans-pred_original_test-union_roberta_token_best_3_ckpts.txt"
+  - "/content/drive/MyDrive/ToxicSpans/results/spanbert_spans/preds/spans-pred-original_test.txt"
+path: "/content/drive/MyDrive/ToxicSpans/results/combine_predictions/spans-pred_original_test-intersection_spanbert_spans_union_roberta_token_best_3_ckpts.txt"
