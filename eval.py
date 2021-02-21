@@ -589,12 +589,25 @@ elif "token_spans" in eval_config.model_name:
     elif eval_config.style == "token":
         if eval_config.with_ground:
             for key in tokenized_train_dataset.keys():
-                temp_offset_mapping = tokenized_train_dataset[key]["offset_mapping"]
-                temp_untokenized_spans = untokenized_train_dataset[key]["spans"]
 
-                dataset = tokenized_train_dataset[key]
+                untokenized_dataset = untokenized_train_dataset[key]
+                temp_untokenized_spans = untokenized_dataset["spans"]
+                temp_intermediate_dataset = untokenized_dataset.map(
+                    dataset.create_test_features,
+                    batched=True,
+                    batch_size=1000000,  ##Unusually Large Batch Size ## Needed For Correct ID mapping
+                    remove_columns=untokenized_dataset.column_names,
+                )
+
+                temp_tokenized_dataset = temp_intermediate_dataset.map(
+                    dataset.prepare_test_features,
+                    batched=True,
+                    remove_columsn=temp_intermediate_dataset.column_names,
+                )
+                temp_offset_mapping = temp_tokenized_dataset["offset_mapping"]
+
                 preds = get_token_spans_separate_logits(
-                    model, dataset, type="token"
+                    model, temp_tokenized_dataset, type="token"
                 )  ## Token Logits
                 preds = np.argmax(preds, axis=2)
                 f1_scores = []
@@ -632,10 +645,24 @@ elif "token_spans" in eval_config.model_name:
                     f.write(str(np.mean(f1_scores)))
         else:
             for key in tokenized_test_dataset.keys():
-                temp_offset_mapping = tokenized_test_dataset[key]["offset_mapping"]
-                dataset = tokenized_test_dataset[key]
+                untokenized_dataset = untokenized_test_dataset[key]
+                temp_untokenized_spans = untokenized_dataset["spans"]
+                temp_intermediate_dataset = untokenized_dataset.map(
+                    dataset.create_test_features,
+                    batched=True,
+                    batch_size=1000000,  ##Unusually Large Batch Size ## Needed For Correct ID mapping
+                    remove_columns=untokenized_dataset.column_names,
+                )
+
+                temp_tokenized_dataset = temp_intermediate_dataset.map(
+                    dataset.prepare_test_features,
+                    batched=True,
+                    remove_columsn=temp_intermediate_dataset.column_names,
+                )
+                temp_offset_mapping = temp_tokenized_dataset["offset_mapping"]
+
                 preds = get_token_spans_separate_logits(
-                    model, dataset, type="token"
+                    model, temp_tokenized_dataset, type="token"
                 )  ## Token Logits
                 preds = np.argmax(preds, axis=2)
                 f1_scores = []
