@@ -11,7 +11,7 @@ results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_spans"
 thresh_file: ${results_dir}/preds/thresh.txt
 data_config:
   name: toxic_spans_spans
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-3000
   train_files:
     validation: ./data/clean_trial.csv
   eval_files:
