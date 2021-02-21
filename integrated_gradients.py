@@ -642,8 +642,8 @@ if __name__ == "__main__":
             thresh,
         )
 
-        if not os.path.exists(ig_config.out_dir):
-            os.makedirs(ig_config.out_dir)
+        if not os.path.exists(ig_config.out_dir + "/" + str(ig_config.sample_index)):
+            os.makedirs(ig_config.out_dir + "/" + str(ig_config.sample_index))
         with open(ig_config.word_out_file, "wb") as f:
             pkl.dump(importances["word_importances"], f)
         with open(ig_config.token_out_file, "wb") as f:
@@ -680,10 +680,10 @@ if __name__ == "__main__":
         for span in predicted_spans:
             predicted_text_spans.append(text[span[0] : span[1] + 1])
 
-    print(words)
-    print(importances)
-    print(ground_text_spans)
-    print(predicted_text_spans)
+    # print(words)
+    # print(importances)
+    # print(ground_text_spans)
+    # print(predicted_text_spans)
 
     html = format_word_importances(
         words, importances, ground_text_spans, predicted_text_spans

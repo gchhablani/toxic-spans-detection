@@ -1,12 +1,12 @@
 model_name: autotoken
 name: roberta
-n_steps: 25
+n_steps: 50
 type: token
-sample_index: 10 # should be in [0,1999] for test
+sample_index: 100 # should be in [0,1999] for test
 out_dir: "/content/drive/My Drive/ToxicSpans/results/IG/roberta_token"
-word_out_file: ${out_dir}/word_importances
-token_out_file: ${out_dir}/token_importances
-viz_out_file: ${out_dir}/viz.html
+word_out_file: ${out_dir}/${sample_index}/word_importances
+token_out_file: ${out_dir}/${sample_index}/token_importances
+viz_out_file: ${out_dir}/${sample_index}/viz.html
 ground_truths_file: ./data/tsd_test_spans.csv
 results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_token"
 data_config:
@@ -24,6 +24,7 @@ data_config:
     max_length: 384 # originally we used 200
     padding: max_length
     return_offsets_mapping: true
+    return_token_type_ids: true
 pretrained_args:
   pretrained_model_name_or_path: ${data_config.model_checkpoint_name}
 predictions_file: ${results_dir}/preds/spans-pred_original_test.txt
