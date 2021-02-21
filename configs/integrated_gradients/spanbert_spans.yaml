@@ -7,6 +7,8 @@ sample_index: 10 # should be in [0,1999] for test
 out_dir: "/content/drive/My Drive/ToxicSpans/results/IG/spanbert_spans"
 word_out_file: ${out_dir}/word_importances
 token_out_file: ${out_dir}/token_importances
+viz_out_file: ${out_dir}/viz.html
+ground_truths_file: ./data/tsd_test_spans.csv
 results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_spans"
 thresh_file: ${results_dir}/preds/thresh.txt
 data_config:
@@ -28,3 +30,4 @@ data_config:
     padding: max_length
 pretrained_args:
   pretrained_model_name_or_path: ${data_config.model_checkpoint_name}
+predictions_file: ${results_dir}/preds/spans-pred_original_test.txt
