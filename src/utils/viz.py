@@ -44,7 +44,7 @@ def format_word_importances(
         importances = np.zeros_like(importances)
 
     assert len(words) <= len(importances)
-    tags = ["<div>"]
+    tags = ["<div>Text: "]
 
     for word_index, (word, importance) in enumerate(
         zip(words, importances[: len(words)])
@@ -61,7 +61,7 @@ def format_word_importances(
                     </font></mark>'
         tags.append(unwrapped_tag)
     tags.append("</div>")
-    tags.append("<br><span> <b>Ground Spans</b>:[ ")
+    tags.append("<br><span> <b>Ground Spans</b>: [ ")
     for i, span in enumerate(ground_text_spans):
         if i != len(ground_text_spans) - 1:
             tags.append(f"'{span}',")
