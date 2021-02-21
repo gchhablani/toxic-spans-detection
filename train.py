@@ -119,6 +119,16 @@ if "toxic-bert" in train_config.pretrained_args.pretrained_model_name_or_path:
     model = model_class.from_pretrained(**train_config.pretrained_args)
     model.bert = deepcopy(toxicbert_model.bert)
     gc.collect()
+
+elif "toxic-roberta" in train_config.pretrained_args.pretrained_model_name_or_path:
+    toxicroberta_model = AutoModelForSequenceClassification.from_pretrained(
+        train_config.pretrained_args.pretrained_model_name_or_path
+    )
+    train_config.pretrained_args.pretrained_model_name_or_path = "roberta-base"
+    model = model_class.from_pretrained(**train_config.pretrained_args)
+    model.roberta = deepcopy(toxicroberta_model.roberta)
+    gc.collect()
+
 else:
     model = model_class.from_pretrained(**train_config.pretrained_args)
 
