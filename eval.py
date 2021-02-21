@@ -622,7 +622,10 @@ elif "token_spans" in eval_config.model_name:
                         for j, tokenwise_prediction in enumerate(
                             pred[: len(temp_offset_mapping[i])]
                         ):
-                            if tokenwise_prediction == 1:
+                            if (
+                                temp_offset_mapping[i][j] is not None
+                                and tokenwise_prediction == 1
+                            ):  # question tokens have None offset.
                                 predicted_spans += list(
                                     range(
                                         temp_offset_mapping[i][j][0],
@@ -677,7 +680,10 @@ elif "token_spans" in eval_config.model_name:
                         for j, tokenwise_prediction in enumerate(
                             pred[: len(temp_offset_mapping[i])]
                         ):
-                            if tokenwise_prediction == 1:
+                            if (
+                                temp_offset_mapping[i][j] is not None
+                                and tokenwise_prediction == 1
+                            ):  # question tokens have None offset.
                                 predicted_spans += list(
                                     range(
                                         temp_offset_mapping[i][j][0],
