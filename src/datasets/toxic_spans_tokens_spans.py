@@ -119,7 +119,7 @@ class ToxicSpansTokensSpansDataset:
         # The offset mappings will give us a map from token to
         # character position in the original context. This will
         # help us compute the start_positions and end_positions.
-        offset_mapping = tokenized_examples.pop("offset_mapping")
+        offset_mapping = tokenized_examples["offset_mapping"]
 
         # Let's label those examples!
         token_labels = []
