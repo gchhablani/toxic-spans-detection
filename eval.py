@@ -151,6 +151,7 @@ tokenized_test_dataset = dataset.test_tokenized_inputs
 
 model_class = configmapper.get_object("models", eval_config.model_name)
 model = model_class.from_pretrained(**eval_config.pretrained_args)
+model.eval()
 tokenizer = AutoTokenizer.from_pretrained(data_config.model_checkpoint_name)
 
 if "crf" in eval_config.model_name:
