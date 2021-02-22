@@ -10,7 +10,7 @@ def _get_color(attr):
     if attr > 0:
         hue = 220
         sat = 100
-        lig = 100 - int(127 * attr)
+        lig = 100 - int(90 * attr)
     else:
         hue = 220
         sat = 100
@@ -44,7 +44,7 @@ def format_word_importances(
         importances = np.zeros_like(importances)
 
     assert len(words) <= len(importances)
-    tags = ["<div>Text: "]
+    tags = ["<div><b>Text</b>: "]
 
     for word_index, (word, importance) in enumerate(
         zip(words, importances[: len(words)])
