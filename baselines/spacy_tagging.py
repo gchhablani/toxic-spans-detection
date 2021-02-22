@@ -63,7 +63,7 @@ def main():
     # Read training data
     print("loading training data")
     datasets = {}
-    datasets["clean_train"] = read_datafile("../data/clean_train.csv")
+    # datasets["clean_train"] = read_datafile("../data/clean_train.csv")
 
     # Read trial data for test.
     # print("loading dev data")
@@ -71,7 +71,7 @@ def main():
 
     # train = train + dev
 
-    datasets["clean_trial"] = read_datafile("../data/clean_trial.csv")
+    # datasets["clean_trial"] = read_datafile("../data/clean_trial.csv")
     datasets["tsd_train"] = read_datafile("../data/tsd_train.csv")
     datasets["tsd_trial"] = read_datafile("../data/tsd_trial.csv")
     datasets["tsd_test"] = read_datafile("../data/tsd_test_spans.csv")
@@ -81,7 +81,7 @@ def main():
 
     print("preparing training data")
     training_data = []
-    for n, (spans, text) in enumerate(datasets["clean_train"]):
+    for n, (spans, text) in enumerate(datasets["tsd_train"]):
         doc = nlp(text)
         ents = spans_to_ents(doc, set(spans), "TOXIC")
         training_data.append((doc.text, {"entities": ents}))
