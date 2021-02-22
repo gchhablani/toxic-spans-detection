@@ -13,7 +13,7 @@ results_dir: "/content/drive/My Drive/ToxicSpans/ToxicSpans/results/fixed/spanbe
 thresh_file: ${results_dir}/preds/thresh.txt
 data_config:
   name: toxic_spans_spans
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-3000
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-3500
   train_files:
     validation: ./data/tsd_trial.csv
   eval_files:

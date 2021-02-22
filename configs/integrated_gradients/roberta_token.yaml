@@ -11,7 +11,7 @@ ground_truths_file: ./data/tsd_test_spans.csv
 results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/roberta_token"
 data_config:
   name: toxic_spans_tokens
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-1500
   train_files:
     validation: ./data/tsd_trial.csv
   eval_files:
