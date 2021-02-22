@@ -469,10 +469,13 @@ def get_importances(
         feature.set_format(
             type="torch", columns=columns, device="cuda", output_all_columns=True
         )
+        start_indices = list(set([temp[0] for temp in start_end_indices]))
+        end_indices = list(set([temp[1] for temp in start_end_indices]))
         all_token_importances = np.array([])
-        for indices in start_end_indices:
-            start_pos = [indices[0]]
-            end_pos = [indices[1]]
+        start_attributions_maps = {}
+        end_attributions_maps = {}
+
+        for start_index in start_indices:
             start_attributions = get_token_wise_attributions(
                 fn,
                 model,
@@ -480,9 +483,11 @@ def get_importances(
                 feature["attention_mask"],
                 name,
                 "start",
-                start_pos,
+                start_index,
                 n_steps,
             )
+            start_attributions_maps[start_index] = start_attributions
+        for end_index in end_indices:
             end_attributions = get_token_wise_attributions(
                 fn,
                 model,
@@ -490,12 +495,17 @@ def get_importances(
                 feature["attention_mask"],
                 name,
                 "end",
-                end_pos,
+                end_index,
                 n_steps,
             )
+            end_attributions_maps[end_index] = end_attributions
+
+        for indices in start_end_indices:
+            start_pos = indices[0]
+            end_pos = indices[1]
             total_attributions = (
-                start_attributions["attributions"][0]
-                + end_attributions["attributions"][0]
+                start_attributions_maps[start_pos]["attributions"][0]
+                + end_attributions_maps[end_pos]["attributions"][0]
             )
             tokens, total_importance_scores = get_token_wise_importances(
                 feature["input_ids"], total_attributions, tokenizer
