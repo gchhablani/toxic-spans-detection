@@ -941,7 +941,6 @@ else:
     else:
         val_original = untokenized_train_dataset["validation"]
 
-        topk = eval_config.topk
         all_predicted_spans = []
         best_threshold = -1
         best_macro_f1 = -1
@@ -988,7 +987,7 @@ else:
         with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
             f.write(str(best_threshold) + "\n")
             f.write(str(best_macro_f1))
-
+    topk = eval_config.topk
     if eval_config.with_ground:
         for key in untokenized_train_dataset.keys():
             f1_scores = []
