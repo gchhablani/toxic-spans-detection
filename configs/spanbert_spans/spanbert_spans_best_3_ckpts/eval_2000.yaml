@@ -2,7 +2,7 @@ model_name: autospans
 results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/spanbert_spans"
 dataset:
   name: toxic_spans_spans
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-4000
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2000
   train_files:
     train: ./data/tsd_train.csv
     validation: ./data/tsd_trial.csv
@@ -20,4 +20,4 @@ pretrained_args:
   pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
 with_ground: true
 topk: 25
-save_dir: ${results_dir}/spanbert_spans_best_3_ckpts/preds-4000/
+save_dir: ${results_dir}/spanbert_spans_best_3_ckpts/preds-2000/

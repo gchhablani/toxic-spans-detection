@@ -2,7 +2,7 @@ model_name: autotoken
 results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/roberta_token"
 dataset:
   name: toxic_spans_tokens
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-1500
   train_files:
     train: ./data/tsd_train.csv
     validation: ./data/tsd_trial.csv
@@ -20,4 +20,4 @@ dataset:
 pretrained_args:
   pretrained_model_name_or_path: ${dataset.model_checkpoint_name}
 with_ground: true
-save_dir: ${results_dir}/roberta_token_best_3_ckpts/preds-2500/
+save_dir: ${results_dir}/roberta_token_best_3_ckpts/preds-1500/
