@@ -935,55 +935,59 @@ elif "token" in eval_config.model_name:
 
 else:
     # QA Eval
-    val_original = untokenized_train_dataset["validation"]
+    if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
+        with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
+            best_threshold = float(f.read().split("\n")[0])
+    else:
+        val_original = untokenized_train_dataset["validation"]
 
-    topk = eval_config.topk
-    all_predicted_spans = []
-    best_threshold = -1
-    best_macro_f1 = -1
-    for row_number in range(len(val_original)):
-        row = val_original[row_number]
-        context = row["text"]
-        question = "offense"
-        while True and topk > 0:
-            try:
-                if topk == 1:
-                    spans = [nlp(question=question, context=context, topk=topk)]
-                else:
-                    spans = nlp(question=question, context=context, topk=topk)
-                break
-            except:
-                topk -= 1
-                if topk == 0:
-                    break
-        all_predicted_spans.append(spans)  # [examples,topk]
-    thresholds = np.linspace(0, 1, 100)
-    for threshold in thresholds:
-        macro_f1 = 0
+        topk = eval_config.topk
+        all_predicted_spans = []
+        best_threshold = -1
+        best_macro_f1 = -1
         for row_number in range(len(val_original)):
             row = val_original[row_number]
-            ground_spans = eval(row["spans"])
-            predicted_spans = all_predicted_spans[row_number]
-            predicted_spans = [
-                span
-                for span in predicted_spans
-                if torch.sigmoid(torch.tensor(span["score"])) > threshold
-            ]
+            context = row["text"]
+            question = "offense"
+            while True and topk > 0:
+                try:
+                    if topk == 1:
+                        spans = [nlp(question=question, context=context, topk=topk)]
+                    else:
+                        spans = nlp(question=question, context=context, topk=topk)
+                    break
+                except:
+                    topk -= 1
+                    if topk == 0:
+                        break
+            all_predicted_spans.append(spans)  # [examples,topk]
+        thresholds = np.linspace(0, 1, 100)
+        for threshold in thresholds:
+            macro_f1 = 0
+            for row_number in range(len(val_original)):
+                row = val_original[row_number]
+                ground_spans = eval(row["spans"])
+                predicted_spans = all_predicted_spans[row_number]
+                predicted_spans = [
+                    span
+                    for span in predicted_spans
+                    if torch.sigmoid(torch.tensor(span["score"])) > threshold
+                ]
 
-            final_predicted_spans = []
-            for span in predicted_spans:
-                final_predicted_spans += list(range(span["start"], span["end"]))
+                final_predicted_spans = []
+                for span in predicted_spans:
+                    final_predicted_spans += list(range(span["start"], span["end"]))
 
-            final_predicted_spans = sorted(final_predicted_spans)
-            macro_f1 += f1(final_predicted_spans, ground_spans)
-        avg = macro_f1 / len(val_original)
-        if avg > best_macro_f1:
-            best_macro_f1 = avg
-            best_threshold = threshold
+                final_predicted_spans = sorted(final_predicted_spans)
+                macro_f1 += f1(final_predicted_spans, ground_spans)
+            avg = macro_f1 / len(val_original)
+            if avg > best_macro_f1:
+                best_macro_f1 = avg
+                best_threshold = threshold
 
-    with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
-        f.write(str(best_threshold) + "\n")
-        f.write(str(best_macro_f1))
+        with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
+            f.write(str(best_threshold) + "\n")
+            f.write(str(best_macro_f1))
 
     if eval_config.with_ground:
         for key in untokenized_train_dataset.keys():
