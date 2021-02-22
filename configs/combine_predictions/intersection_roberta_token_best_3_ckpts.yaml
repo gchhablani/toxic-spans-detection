@@ -1,6 +1,6 @@
 type: intersection
 files:
-  - "/content/drive/MyDrive/ToxicSpans/results/fixed/roberta_token/roberta_token_best_3_ckpts/preds-1000/spans-pred_original_test.txt"
-  - "/content/drive/MyDrive/ToxicSpans/results/fixed/roberta_token/roberta_token_best_3_ckpts/preds-2000/spans-pred_original_test.txt"
-  - "/content/drive/MyDrive/ToxicSpans/results/fixed/roberta_token/roberta_token_best_3_ckpts/preds-2500/spans-pred_original_test.txt"
+  - "/content/drive/MyDrive/ToxicSpans/results/fixed/roberta_token/roberta_token_best_3_ckpts/preds-1500/spans-pred_original_test.txt"
+  - "/content/drive/MyDrive/ToxicSpans/results/fixed/roberta_token/roberta_token_best_3_ckpts/preds-4000/spans-pred_original_test.txt"
+  - "/content/drive/MyDrive/ToxicSpans/results/fixed/roberta_token/roberta_token_best_3_ckpts/preds-5000/spans-pred_original_test.txt"
 path: "/content/drive/MyDrive/ToxicSpans/results/fixed/combine_predictions/spans-pred_original_test-intersection_roberta_token_best_3_ckpts.txt"
