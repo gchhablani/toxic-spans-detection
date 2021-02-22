@@ -5,7 +5,7 @@ pretrained_args:
   lstm_hidden_size: 128
   lstm_layers: 1
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_crf_token"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/bert_crf_token"
 
 args:
   output_dir: ${results_dir}/ckpts/

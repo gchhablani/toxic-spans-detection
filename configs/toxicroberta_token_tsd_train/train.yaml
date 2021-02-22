@@ -3,7 +3,7 @@ pretrained_args:
   pretrained_model_name_or_path: unitary/unbiased-toxic-roberta
   num_labels: 2
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/toxicroberta_token_tsd_train"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/toxicroberta_token_tsd_train"
 
 args:
   output_dir: ${results_dir}/ckpts/

@@ -4,18 +4,18 @@ n_steps: 50
 type: spans
 sample_index: 50 # should be in [0,1999] for test
 
-out_dir: "/content/drive/My Drive/ToxicSpans/results/IG/spanbert_spans"
+out_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/IG/spanbert_spans"
 word_out_file: ${out_dir}/${sample_index}/word_importances
 token_out_file: ${out_dir}/${sample_index}/token_importances
 viz_out_file: ${out_dir}/${sample_index}/viz.html
 ground_truths_file: ./data/tsd_test_spans.csv
-results_dir: "/content/drive/My Drive/ToxicSpans/ToxicSpans/results/spanbert_spans"
+results_dir: "/content/drive/My Drive/ToxicSpans/ToxicSpans/results/fixed/spanbert_spans"
 thresh_file: ${results_dir}/preds/thresh.txt
 data_config:
   name: toxic_spans_spans
   model_checkpoint_name: ${results_dir}/ckpts/checkpoint-3000
   train_files:
-    validation: ./data/clean_trial.csv
+    validation: ./data/tsd_trial.csv
   eval_files:
     test: ./data/tsd_test.csv
   label_cls: true

@@ -2,7 +2,7 @@ model_name: autospans
 pretrained_args:
   pretrained_model_name_or_path: bert-base-uncased
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_base_spans"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/bert_base_spans"
 
 args:
   output_dir: ${results_dir}/ckpts/

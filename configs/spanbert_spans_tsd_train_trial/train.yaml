@@ -1,8 +1,8 @@
 model_name: autospans
 pretrained_args:
-  pretrained_model_name_or_path: SpanBERT/spanbert-large-cased 
+  pretrained_model_name_or_path: SpanBERT/spanbert-large-cased
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/spanbert_spans_tsd_train_trial"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/spanbert_spans_tsd_train_trial"
 
 args:
   output_dir: ${results_dir}/ckpts/

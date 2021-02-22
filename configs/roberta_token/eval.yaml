@@ -1,13 +1,11 @@
 model_name: autotoken
-results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_token"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/roberta_token"
 dataset:
   name: toxic_spans_tokens
   model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
   train_files:
-    train: ./data/clean_train.csv
-    validation: ./data/clean_trial.csv
-    original_trial: ./data/tsd_trial.csv
-    original_train: ./data/tsd_train.csv
+    train: ./data/tsd_train.csv
+    validation: ./data/tsd_trial.csv
     original_test: ./data/tsd_test_spans.csv
   eval_files:
     test: ./data/tsd_test.csv

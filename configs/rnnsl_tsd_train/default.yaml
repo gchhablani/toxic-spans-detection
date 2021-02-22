@@ -7,4 +7,4 @@ test_files:
   - ./data/tsd_train.csv
   - ./data/tsd_trial.csv
 max_length: 192
-save_dir: "/content/drive/My Drive/ToxicSpans/results/rnnsl_tsd_train/"
+save_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/rnnsl_tsd_train/"

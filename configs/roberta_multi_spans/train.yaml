@@ -1,7 +1,7 @@
 model_name: roberta_multi_spans
 pretrained_args:
   pretrained_model_name_or_path: roberta-large
-results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_multi_spans"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/roberta_multi_spans"
 
 args:
   output_dir: ${results_dir}/ckpts/

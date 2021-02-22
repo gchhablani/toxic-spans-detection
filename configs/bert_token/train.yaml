@@ -3,7 +3,7 @@ pretrained_args:
   pretrained_model_name_or_path: bert-large-uncased
   num_labels: 2
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_token"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/bert_token"
 
 args:
   output_dir: ${results_dir}/ckpts/

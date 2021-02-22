@@ -3,7 +3,7 @@ pretrained_args:
   pretrained_model_name_or_path: roberta-base
   num_labels: 2
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/roberta_base_token"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/roberta_base_token"
 
 args:
   output_dir: ${results_dir}/ckpts/

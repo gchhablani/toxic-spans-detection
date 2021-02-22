@@ -2,7 +2,7 @@ name: toxic_spans_tokens
 model_checkpoint_name: roberta-large
 train_files:
   train: ./data/clean_train_trial.csv
-  validation: ./data/clean_trial.csv
+  validation: ./data/tsd_trial.csv
 eval_files:
   test: ./data/tsd_test.csv
 label_cls: true

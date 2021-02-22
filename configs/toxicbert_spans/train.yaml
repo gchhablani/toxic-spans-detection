@@ -2,7 +2,7 @@ model_name: autospans
 pretrained_args:
   pretrained_model_name_or_path: unitary/toxic-bert
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/toxicbert_spans"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/toxicbert_spans"
 
 args:
   output_dir: ${results_dir}/ckpts/

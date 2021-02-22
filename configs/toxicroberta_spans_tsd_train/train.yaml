@@ -2,7 +2,7 @@ model_name: autospans
 pretrained_args:
   pretrained_model_name_or_path: unitary/unbiased-toxic-roberta
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/toxicroberta_spans_tsd_train"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/toxicroberta_spans_tsd_train"
 
 args:
   output_dir: ${results_dir}/ckpts/

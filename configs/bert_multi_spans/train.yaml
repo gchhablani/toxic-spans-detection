@@ -2,7 +2,7 @@ model_name: bert_multi_spans
 pretrained_args:
   pretrained_model_name_or_path: bert-large-uncased
 
-results_dir: "/content/drive/My Drive/ToxicSpans/results/bert_multi_spans"
+results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/bert_multi_spans"
 
 args:
   output_dir: ${results_dir}/ckpts/
