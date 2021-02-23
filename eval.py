@@ -936,6 +936,7 @@ elif "token" in eval_config.model_name:
 
 else:
     # QA Eval
+    topk = eval_config.topk
     if os.path.exists(os.path.join(eval_config.save_dir, f"thresh.txt")):
         with open(os.path.join(eval_config.save_dir, f"thresh.txt")) as f:
             best_threshold = float(f.read().split("\n")[0])
@@ -988,7 +989,6 @@ else:
         with open(os.path.join(eval_config.save_dir, f"thresh.txt"), "w") as f:
             f.write(str(best_threshold) + "\n")
             f.write(str(best_macro_f1))
-    topk = eval_config.topk
     if eval_config.with_ground:
         for key in untokenized_train_dataset.keys():
             f1_scores = []
