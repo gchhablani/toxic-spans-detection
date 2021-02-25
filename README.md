@@ -255,9 +255,6 @@ where `<ground>` is path to the ground truths, `<preds>` is the prediction file,
 │   ├── Exploratory Data Analysis & Preprocessing.ipynb
 │   └── Span Length, Contiguous Spans stats.ipynb
 ├── print_predictions.py
-├── __pycache__
-│   ├── run_baseline_model.cpython-38.pyc
-│   └── test_random_stuff.cpython-38.pyc
 ├── README.md
 ├── requirements.txt
 ├── results
