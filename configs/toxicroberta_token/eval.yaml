@@ -2,7 +2,7 @@ model_name: autotoken
 results_dir: "/content/drive/My Drive/ToxicSpans/results/fixed/toxicroberta_token"
 dataset:
   name: toxic_spans_tokens
-  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-2500
+  model_checkpoint_name: ${results_dir}/ckpts/checkpoint-4000
   train_files:
     train: ./data/tsd_train.csv
     validation: ./data/tsd_trial.csv

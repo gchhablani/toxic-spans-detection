@@ -1,8 +1,6 @@
 train_file: ./data/tsd_train_trial.csv
 dev_file: ./data/tsd_trial.csv
 test_files:
-  - ./data/clean_train.csv
-  - ./data/clean_trial.csv
   - ./data/tsd_test_spans.csv
   - ./data/tsd_train.csv
   - ./data/tsd_trial.csv
