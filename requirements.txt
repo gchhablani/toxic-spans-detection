@@ -281,7 +281,7 @@ tblib==1.6.0
 tensorboard @ file:///home/conda/feedstock_root/build_artifacts/tensorboard_1605165799666/work/tensorboard-2.4.0-py3-none-any.whl
 tensorboard-plugin-wit @ file:///home/conda/feedstock_root/build_artifacts/tensorboard-plugin-wit_1603349307347/work/tensorboard_plugin_wit-1.7.0-py3-none-any.whl
 tensorboardX==2.1
-tensorflow==2.2.0
+tensorflow>=2.4.0
 tensorflow-datasets==4.2.0
 tensorflow-estimator @ file:///home/conda/feedstock_root/build_artifacts/tensorflow-estimator_1592819788686/work/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
 tensorflow-metadata==0.27.0
