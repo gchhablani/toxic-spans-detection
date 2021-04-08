@@ -130,6 +130,6 @@ dmypy.json
 .vscode/settings.json
 out.txt
 output*
-spans-pred*
+submission_predictions/*
+baselines/*.txt
 *.zip
-*.txt

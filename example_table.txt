@@ -1,0 +1,44 @@
+\begin{tabular}{ll}
+\toprule
+                                        file\_names &                                              spans \\
+\midrule
+                                         text\_1999 &  Why does this author think she can demand, or ... \\
+                                            ground &                                             [dumb] \\
+                                   bert\_base\_spans &                                                 [] \\
+                                   bert\_base\_token &                                   [dumb, ignorant] \\
+                                    bert\_crf\_token &                                   [dumb, ignorant] \\
+                                  bert\_multi\_spans &                                             [dumb] \\
+                                        bert\_spans &                                                 [] \\
+                                        bert\_token &                                   [dumb, ignorant] \\
+                                  bert\_token\_spans &                                [dumb and ignorant] \\
+           intersection\_roberta\_token\_best\_3\_ckpts &                                   [dumb, ignorant] \\
+ intersection\_roberta\_token\_union\_spanbert\_span... &                                   [dumb, ignorant] \\
+          intersection\_spanbert\_spans\_best\_3\_ckpts &                                                 [] \\
+ intersection\_spanbert\_spans\_union\_roberta\_toke... &                                                 [] \\
+                  union\_roberta\_token\_best\_3\_ckpts &                               [go, dumb, ignorant] \\
+ union\_roberta\_token\_union\_spanbert\_spans\_best\_... &                                [dumb and ignorant] \\
+                 union\_spanbert\_spans\_best\_3\_ckpts &                                [dumb and ignorant] \\
+ union\_spanbert\_spans\_union\_roberta\_token\_best\_... &                               [go, dumb, ignorant] \\
+                                             rnnsl &                         [ignorant, dumb, ignorant] \\
+                             rnnsl\_tsd\_train\_trial &                   [goon, ignorant, dumb, ignorant] \\
+                                roberta\_base\_spans &                                                 [] \\
+                                roberta\_base\_token &                                             [dumb] \\
+                                 roberta\_crf\_token &                     [on, ignorant, dumb, ignorant] \\
+                               roberta\_multi\_spans &                                                 [] \\
+                                     roberta\_spans &                                                 [] \\
+                                     roberta\_token &                                   [dumb, ignorant] \\
+                               roberta\_token\_spans &                      [ignorant, dumb and ignorant] \\
+                     roberta\_token\_tsd\_train\_trial &                                   [dumb, ignorant] \\
+                                             spacy &                                         [ignorant] \\
+                                spanbert\_crf\_token &                         [ignorant, dumb, ignorant] \\
+                              spanbert\_multi\_spans &                                [dumb and ignorant] \\
+                                    spanbert\_spans &                                                 [] \\
+                    spanbert\_spans\_tsd\_train\_trial &                                [dumb and ignorant] \\
+                                    spanbert\_token &                         [ignorant, dumb, ignorant] \\
+                              spanbert\_token\_spans &                      [ignorant, dumb and ignorant] \\
+                                   toxicbert\_spans &                                                 [] \\
+                                   toxicbert\_token &                                         [ignorant] \\
+                                toxicroberta\_spans &                                                 [] \\
+                                toxicroberta\_token &                                   [dumb, ignorant] \\
+\bottomrule
+\end{tabular}
